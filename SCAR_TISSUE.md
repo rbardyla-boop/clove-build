@@ -29,4 +29,5 @@ Failures found during construction and the permanent detector for each.
 | ROUTE-005: kitchen DWV ran through every joist at mid-depth | MECHANISM | Kitchen waste hung under joists + floor drop + penetration |
 | ROUTE-006: kitchen vent riser occupied window W2 | MECHANISM | Rise offset to king-stud bay east of W2; clash engine treats window/door units as solid hosts |
 | FRAME-001: kitchen return wall was one 3.4 m lumber slab | CONCEPT | Real 2×4 studs at 16″ o.c. with plates |
-| ROUTE-007: bath cable was a floor-diagonal laser | MECHANISM | Split into joist-bay run + cross-joist run (`electrical.cable.bath.001` / `.001b`) |
+| JOIST-BORE-001: L-routed cables look installable but bores are not modelled | CONCEPT | `joist-bore-unverified` tag; Check returns MISSING_INFORMATION (location/diameter/remaining wood/protection unknown) |
+| HVAC-HUNG-001: basement trunks hung below joists without clearance proof | CONCEPT | Check returns MISSING_INFORMATION for strap spacing / headroom / sizing |

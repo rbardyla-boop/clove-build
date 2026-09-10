@@ -587,6 +587,55 @@ export const demoRules: Rule[] = [
     },
   },
   {
+    id: "JOIST-BORE-001",
+    title: "Cross-joist cable bores are not modelled",
+    packVersion: DEMO_PACK_VERSION,
+    domain: "electrical",
+    provenance: {
+      authority: "TRADE_PRACTICE",
+      sourceIds: ["clove-demo-pack"],
+      wording: "executable-logic-only",
+      verification: "unverified",
+    },
+    authorityLabel: "Plausible routing — not a verified joist penetration",
+    evaluate: (_ctx, lookup) => {
+      const ids = lookup.idsByTag("joist-bore-unverified").filter((id) => !lookup.isRemoved(id));
+      return {
+        verdict: "MISSING_INFORMATION",
+        componentIds: ids,
+        inputs: {
+          crossJoistRuns: ids.length,
+          modelledBoreDiameter: null,
+          remainingWood: null,
+          protectionPlate: null,
+          manufacturedJoistRestrictions: null,
+        },
+        reason:
+          "These cables are geometrically L-shaped in the floor cavity instead of a diagonal through the room. That is plausible routing. Bore location, diameter, remaining wood, hole protection, and any manufactured-joist drilling restrictions are not in the graph, so this is not a verified installation.",
+        assumption: "A sensible-looking line is not a bored-hole design.",
+      };
+    },
+  },
+  {
+    id: "HVAC-HUNG-001",
+    title: "Hung basement trunks: clearance and support not evaluated",
+    packVersion: DEMO_PACK_VERSION,
+    domain: "hvac",
+    provenance: DEMO,
+    authorityLabel: "Plausible routing — not a verified mechanical installation",
+    evaluate: (_ctx, lookup) => {
+      const ids = ["hvac.duct.supply.main", "hvac.duct.return.main", "hvac.duct.supply.riser"].filter((id) => lookup.has(id) && !lookup.isRemoved(id));
+      return {
+        verdict: "MISSING_INFORMATION",
+        componentIds: ids,
+        inputs: { strapSpacing: null, remainingHeadroom: null, ductSizeVerified: false },
+        reason:
+          "Supply and return trunks hang below the joists rather than occupying the 2×10 joist cavity. That is the more believable place for a trunk this size. Strap spacing, remaining basement headroom, and duct sizing are not evaluated.",
+        assumption: "Hanging a duct under the joists is a routing fact, not a mechanical design.",
+      };
+    },
+  },
+  {
     id: "PEI-ENERGY-PATH-001",
     title: "Which energy path applies to this Part 9 house",
     packVersion: DEMO_PACK_VERSION,

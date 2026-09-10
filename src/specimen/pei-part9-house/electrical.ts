@@ -258,9 +258,9 @@ export function addElectrical(reg: Registry) {
     "Kitchen branch in joist bay",
     [panelX, joistY, 2.4],
     [2.75, joistY, 2.4],
-    ["electrical", "kitchen"],
-    "Kitchen circuit running across joist bays (bored holes), then in a bay.",
-    "Stay in the floor cavity; do not diagonal through the room.",
+    ["electrical", "kitchen", "joist-bore-unverified"],
+    "Kitchen circuit running across joist bays, shown as an L — bored holes are not modelled.",
+    "Geometrically in the floor cavity. Bore location, diameter, remaining wood and protection are MISSING_INFORMATION.",
   );
   cable(
     reg,
@@ -408,9 +408,9 @@ export function addElectrical(reg: Registry) {
     "Bath branch across joists",
     [panelX, joistY, -1.17],
     [-2.25, joistY, -1.17],
-    ["electrical", "bath"],
-    "Turn across joist bays to the wet wall (bored holes, not a room diagonal).",
-    "Arrive under the bathroom partition before rising.",
+    ["electrical", "bath", "joist-bore-unverified"],
+    "Turn across joist bays to the wet wall. Shown as an L, not a room diagonal.",
+    "Plausible routing. Bored-hole location, diameter, remaining wood and hole protection are not in the graph.",
   );
   cable(
     reg,
@@ -546,9 +546,9 @@ export function addElectrical(reg: Registry) {
     "Lighting branch",
     [panelX, joistY, 2.4],
     [0.2, joistY, 2.4],
-    ["electrical", "lighting"],
-    "Lighting circuit across joist bays toward the front wall.",
-    "Serve switches and luminaires without a floor-cavity diagonal.",
+    ["electrical", "lighting", "joist-bore-unverified"],
+    "Lighting circuit across joist bays toward the front wall. Shown as an L.",
+    "Geometrically routed. Joist bores are not verified installation details.",
   );
   cable(
     reg,
