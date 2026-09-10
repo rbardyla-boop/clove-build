@@ -7,6 +7,7 @@ import { CheckDrawer } from "./CheckDrawer";
 import { DiagPanel } from "./DiagPanel";
 import { Hint } from "./Hint";
 import { Inspector } from "./Inspector";
+import { KnownDefectsBanner } from "./KnownDefectsBanner";
 import { LearnPanel } from "./LearnPanel";
 import { RyanTest } from "./RyanTest";
 import { Scrubber } from "./Scrubber";
@@ -91,6 +92,7 @@ export function LabShell() {
         <Inspector />
         <LearnPanel />
         <Hint />
+        <KnownDefectsBanner />
         <ChallengeBanner />
         <CheckDrawer />
         <RyanTest />

@@ -31,6 +31,11 @@ export function TopBar() {
           ))}
         </select>
       </label>
+      {specimen?.channel === "experimental" ? (
+        <span className="lab-chip-exp" title="v0.3 construction-depth. Do not merge. v0.2.0 is the public alpha.">
+          v0.3 experimental
+        </span>
+      ) : null}
       <div className="lab-context" title={pack.regulatoryStatus}>
         <span>Prince Edward Island</span>
         <span className="lab-dot" aria-hidden="true" />

@@ -1,5 +1,7 @@
 import { summarize } from "@/crates/rule-engine/engine";
 import type { RuleDomain } from "@/crates/rule-engine/types";
+import { findKnownDefects } from "@/crates/known-failures/detectors";
+import { openFailuresFor } from "@/crates/known-failures/registry";
 import { useLab } from "@/crates/session/store";
 
 const ORDER: RuleDomain[] = [
@@ -28,6 +30,8 @@ export function CheckDrawer() {
     domain,
     rows: check.filter((r) => r.domain === domain),
   })).filter((g) => g.rows.length);
+  const known = openFailuresFor(graph.id);
+  const knownHits = findKnownDefects(graph);
 
   return (
     <section className="lab-check" aria-label="Build check">
@@ -44,6 +48,28 @@ export function CheckDrawer() {
         {counts.FAIL} fail · {counts.MISSING_INFORMATION} missing information · {counts.UNCERTAIN} uncertain · {counts.PASS} pass
       </p>
       <p className="lab-disclaimer">Not a permit determination. Authority class is printed on every finding.</p>
+      {known.length ? (
+        <details className="lab-check-group" open>
+          <summary>
+            <span className="lab-kicker">known defects</span>
+            <span className="lab-pill lab-pill-fail">OPEN</span>
+          </summary>
+          <ul className="lab-check-list">
+            {known.map((f) => (
+              <li key={f.id} className="lab-check-item">
+                <div className="lab-check-item-head">
+                  <span className="lab-pill lab-pill-fail">{f.id}</span>
+                  <strong>{f.title}</strong>
+                </div>
+                <p>{f.summary}</p>
+                <p className="lab-muted">
+                  Spatial occupancy · {knownHits.filter((h) => h.failureId === f.id).length} live hits. Not a new finding.
+                </p>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
       {groups.map((g) => {
         const fail = g.rows.some((r) => r.verdict === "FAIL");
         const incomplete = g.rows.some((r) => r.verdict === "MISSING_INFORMATION" || r.verdict === "UNCERTAIN");

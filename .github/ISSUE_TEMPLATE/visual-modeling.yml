@@ -1,0 +1,38 @@
+name: Visual / modeling defect
+description: It looks wrong on screen — uncut sheets, colliding meshes, unreadable X-ray.
+title: "[visual] "
+labels: ["visual-modeling"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Already recorded (do not duplicate):
+        - ENVELOPE-OPENING-001 — envelope covers door/window openings
+        - POOL-SPA-001 — pool and hot tub occupy the same space
+  - type: dropdown
+    id: specimen
+    attributes:
+      label: Specimen
+      options:
+        - PEI Part 9 house
+        - Slab-on-grade cottage
+        - Rural cottage + pool
+        - Unsure
+    validations:
+      required: true
+  - type: textarea
+    id: area
+    attributes:
+      label: Component / view
+      placeholder: Front door, bathroom wet wall, exploded roof…
+    validations:
+      required: true
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What looks wrong
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: Attach a screenshot if you can.

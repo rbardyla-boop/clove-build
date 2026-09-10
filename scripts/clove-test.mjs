@@ -34,6 +34,8 @@ const TEST_FILES = [
   "src/crates/sequence/sequence.test.ts",
   "src/crates/geometry/depth.test.ts",
   "src/crates/geometry/specimen-depth.test.ts",
+  "src/crates/spatial/spatial.test.ts",
+  "src/crates/known-failures/known-failures.test.ts",
 ];
 
 const result = spawnSync(

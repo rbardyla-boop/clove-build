@@ -118,6 +118,61 @@
   max-width: 220px;
 }
 
+.lab-chip-exp {
+  flex: 0 0 auto;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 99px;
+  border: 1px solid color-mix(in oklab, #d4a017 55%, var(--color-line));
+  color: #f0d48a;
+  background: color-mix(in oklab, #d4a017 16%, transparent);
+}
+
+.lab-known {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  width: min(280px, calc(100vw - 24px));
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--color-chrome) 92%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-paper) 12%, transparent);
+  backdrop-filter: blur(10px);
+  z-index: 3;
+}
+.lab-known ul {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.lab-known-link {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+.lab-known-link strong {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f0d48a;
+}
+.lab-known-link span {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  line-height: 1.35;
+}
+
 .lab-top-actions {
   display: flex;
   gap: 6px;
@@ -666,7 +721,8 @@
   }
   .lab-challenge,
   .lab-check,
-  .lab-drawer {
+  .lab-drawer,
+  .lab-known {
     left: 8px;
     right: 8px;
     width: auto;

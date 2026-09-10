@@ -3,11 +3,14 @@ import { buildPeiHouse } from "./pei-part9-house";
 import { buildSlabCottage } from "./slab-cottage";
 import { buildRuralPoolHouse } from "./rural-pool";
 
+export type SpecimenChannel = "stable" | "experimental";
+
 export type SpecimenMeta = {
   id: string;
   title: string;
   constructionType: string;
   summary: string;
+  channel: SpecimenChannel;
   build: () => BuildingGraph;
 };
 
@@ -16,21 +19,24 @@ export const SPECIMENS: SpecimenMeta[] = [
     id: "PEI-PART9-DEMO-001",
     title: "PEI Part 9 house",
     constructionType: "basement",
-    summary: "Reference specimen. Frozen v0.2 behaviour plus construction-depth fields.",
+    summary: "Reference specimen on the v0.3 experimental branch. Public alpha remains v0.2.0.",
+    channel: "experimental",
     build: buildPeiHouse,
   },
   {
     id: "PEI-SLAB-COTTAGE-001",
     title: "Slab-on-grade cottage",
     constructionType: "slab-on-grade",
-    summary: "Compact slab-on-grade cottage. Drains in the granular base, supply in walls and attic.",
+    summary: "Experimental. Envelope openings and visual depth still under human review.",
+    channel: "experimental",
     build: buildSlabCottage,
   },
   {
     id: "PEI-RURAL-POOL-001",
     title: "Rural cottage + pool",
     constructionType: "slab-on-grade",
-    summary: "Slab cottage plus deck, in-ground pool, hot tub, circulation and schematic bonding. CEC 68 stays unknown.",
+    summary: "Experimental. Pool/hot-tub occupancy is a recorded known defect (POOL-SPA-001).",
+    channel: "experimental",
     build: buildRuralPoolHouse,
   },
 ];

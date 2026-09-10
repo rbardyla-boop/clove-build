@@ -2,7 +2,9 @@
 
 **Public Alpha v0.2.0** — a free, open-source, browser-based PEI Part 9 house you can build, disassemble, inspect, trace, break, and check across all major residential trades.
 
-**[Try to break Clove](BREAK_CLOVE.md)** — find one thing you would not actually build, one rule that claims too much, or one part of the interface that teaches the wrong model.
+**v0.3** is an experimental test build on `v0.3-construction-depth`. It is not merged. It is not the public alpha. Known defects: envelope sheets covering openings (`ENVELOPE-OPENING-001`), pool/hot-tub occupancy (`POOL-SPA-001`). See [KNOWN_FAILURES.md](KNOWN_FAILURES.md).
+
+**[Try to break Clove](BREAK_CLOVE.md)** — four buckets: physical construction, authority overclaim, usability/teaching, visual/modeling.
 
 Clove Build Lab is an open-source browser laboratory for learning how buildings go together.
 

@@ -43,3 +43,6 @@ Failures found during construction and the permanent detector for each.
 | DEPTH-003: sequence treated assembly groups as unbuilt | MECHANISM | Group prerequisites count as placed if present |
 | ROOF-VENT-001: kitchen attic vent ran along the eave, through the roof covering; Check missed it because rotated roof meshes have no AABB | MECHANISM | `THROUGH_ROOF` samples `run` vs `roofDeckY`; kitchen vent turns inboard below the rafters; stack vent still needs a modelled roof hole |
 | SPECIMEN-DEPTH-001: slab and rural dwellings shipped as visible test fixtures | CONTENT | Wood-slab kit with real studs/openings/rotated rafters; under-slab DWV; rural pool circulation seated on a pad. Visual-physical gate required. |
+| ENVELOPE-OPENING-001: WRB/cladding cover door and window holes | SPATIAL | Occupancy role `sheet` vs `opening`; face-containment detector (not AABB, cladding is outboard). OPEN on all three dwellings. Geometry not patched this freeze. |
+| POOL-SPA-001: pool and hot tub occupy the same outdoor space | SPATIAL | Occupancy role `vessel` + plan-clearance detector. OPEN on rural. Geometry not patched this freeze. |
+
