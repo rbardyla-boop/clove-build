@@ -157,6 +157,16 @@ export default defineConfig(({ command, isPreview }) => ({
     strictPort: true,
   },
   resolve: { tsconfigPaths: true },
+  build: {
+    chunkSizeWarningLimit: 900,
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [{ name: "three", test: /node_modules[\\/]three/, priority: 20 }],
+        },
+      },
+    },
+  },
   plugins: [
     pgliteBootstrapPlugin(),
     // Before tanstackStart so /auth/popup never falls through to the SPA.

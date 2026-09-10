@@ -1,7 +1,8 @@
 import { belongsToAssembly } from "@/crates/building-graph/integrity";
-import type { BuildingComponent, BuildingGraph, Vec3 } from "@/crates/building-graph/types";
+import type { BuildingComponent, BuildingGraph, TradeId, Vec3 } from "@/crates/building-graph/types";
+import { tradeOf } from "@/crates/trades/infer";
 
-export type ExplodeScope = "whole" | string;
+export type ExplodeScope = "whole" | `trade:${TradeId}` | string;
 
 export function clampAmount(amount: number): number {
   if (!Number.isFinite(amount)) return 0;
@@ -24,6 +25,9 @@ export function vecLen(v: Vec3): number {
  * Exploded visual offset. Canonical geometry is never mutated.
  * amount 0 is always the identity. Repeated 0↔1 cycles cannot drift
  * because this is a pure function of (component, amount, scope).
+ *
+ * Whole-house explode uses explodeVector only so v0.1 structure tests stay valid.
+ * Trade explode uses tradeExplodeVector (or localExplodeVector as fallback).
  */
 export function explodeOffset(
   graph: BuildingGraph,
@@ -35,6 +39,11 @@ export function explodeOffset(
   if (a === 0) return [0, 0, 0];
   if (component.geometry.kind === "group") return [0, 0, 0];
   if (scope === "whole") return scaleVec(component.assembly.explodeVector, a);
+  if (typeof scope === "string" && scope.startsWith("trade:")) {
+    const want = scope.slice(6) as TradeId;
+    if (tradeOf(component) !== want) return [0, 0, 0];
+    return scaleVec(component.assembly.tradeExplodeVector ?? component.assembly.localExplodeVector, a);
+  }
   if (!belongsToAssembly(graph, component.id, scope)) return [0, 0, 0];
   return scaleVec(component.assembly.localExplodeVector, a);
 }

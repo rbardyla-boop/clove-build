@@ -56,6 +56,42 @@ export function checkGraphIntegrity(graph: BuildingGraph): IntegrityIssue[] {
     }
     checkRefs(c, "supportedBy", issues, components);
     checkRefs(c, "supports", issues, components);
+    if (c.penetration) {
+      if (!components[c.penetration.hostId]) {
+        issues.push({
+          code: "missing-penetration-host",
+          message: `${id} penetration host ${c.penetration.hostId} missing`,
+          componentId: id,
+        });
+      }
+      if (!components[c.penetration.tradeComponentId]) {
+        issues.push({
+          code: "missing-penetration-trade",
+          message: `${id} penetration trade ${c.penetration.tradeComponentId} missing`,
+          componentId: id,
+        });
+      }
+    }
+  }
+
+  for (const sys of graph.systems ?? []) {
+    const nodeIds = new Set(sys.nodes.map((n) => n.id));
+    for (const n of sys.nodes) {
+      if (!components[n.componentId]) {
+        issues.push({
+          code: "missing-system-component",
+          message: `system ${sys.id} node ${n.id} → missing ${n.componentId}`,
+        });
+      }
+    }
+    for (const conn of sys.connections) {
+      if (!nodeIds.has(conn.from) || !nodeIds.has(conn.to)) {
+        issues.push({
+          code: "missing-system-node",
+          message: `system ${sys.id} connection ${conn.id} references a missing node`,
+        });
+      }
+    }
   }
 
   return issues;

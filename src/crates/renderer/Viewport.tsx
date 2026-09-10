@@ -37,15 +37,24 @@ export function Viewport() {
             removedIds: s.removedIds,
             mode: s.mode,
             xray: s.xray,
-            check: s.check?.map((r) => ({ ruleId: r.ruleId, verdict: r.verdict })),
+            hideFinish: s.hideFinish,
+            flowMode: s.flowMode,
+            tradeLayers: s.tradeLayers,
+            trace: s.trace,
+            check: s.check?.map((r) => ({ ruleId: r.ruleId, verdict: r.verdict, domain: r.domain })),
             graphId: s.graph.id,
             componentCount: Object.keys(s.graph.components).length,
+            systemCount: s.graph.systems.length,
+            faultIds: s.faultIds,
+            searchQuery: s.searchQuery,
+            viewDepth: s.viewDepth,
           };
         },
         fps: lab.fps,
         drawCalls: lab.drawCalls,
         dispatch: (cmd: Parameters<typeof state.dispatch>[0]) => useLab.getState().dispatch(cmd),
         explodeSelection: () => useLab.getState().explodeSelection(),
+        setView: (pos: [number, number, number], target: [number, number, number]) => lab.setView(pos, target),
       };
     };
     probe();

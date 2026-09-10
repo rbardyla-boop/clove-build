@@ -30,11 +30,16 @@ export function authorityLabel(c: BuildingComponent): string {
       return "Standard reference";
     case "VERIFIED_ENGINEERING_RELATION":
       return "Verified engineering relation";
+    case "BUILDING_SCIENCE":
+      return "Building science";
+    case "TRADE_PRACTICE":
+      return "Trade practice";
     case "PROJECT_MODEL_ASSUMPTION":
       return "Project model assumption";
     case "EDUCATIONAL_DEMO_RULE":
       return "Educational demonstration";
     case "INFERENCE":
+    case "AI_INFERRED":
       return "Inference";
     default:
       return "Unknown";

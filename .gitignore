@@ -6,3 +6,7 @@ node_modules/
 
 .vercel/
 artifacts/
+private-reference/**
+!private-reference/README.md
+.grok/preview.log
+.grok/preview.pid

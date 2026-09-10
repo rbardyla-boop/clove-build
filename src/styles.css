@@ -100,6 +100,85 @@
   gap: 6px;
 }
 
+.lab-search {
+  position: relative;
+  flex: 0 1 280px;
+  min-width: 140px;
+}
+.lab-search input[type="search"] {
+  width: 100%;
+  appearance: none;
+  border: 0;
+  background: var(--color-chrome-2);
+  color: var(--color-paper);
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 6px 10px;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-paper) 12%, transparent);
+}
+.lab-search-hits {
+  position: absolute;
+  z-index: 8;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  background: var(--color-chrome);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  max-height: 280px;
+  overflow: auto;
+}
+.lab-search-hit {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+.lab-search-hit:hover,
+.lab-search-hit:focus {
+  background: var(--color-chrome-2);
+}
+
+.lab-learn {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  width: min(280px, calc(100vw - 24px));
+  max-height: 34%;
+  overflow: auto;
+  padding: 12px;
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--color-chrome) 82%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-paper) 12%, transparent);
+  backdrop-filter: blur(10px);
+  z-index: 2;
+}
+.lab-learn-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.lab-hint-sub {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  color: var(--color-muted);
+}
+
 .lab-main {
   position: relative;
   min-height: 0;
@@ -136,6 +215,7 @@
   background: color-mix(in oklab, var(--color-chrome) 88%, transparent);
   box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-paper) 12%, transparent);
   backdrop-filter: blur(10px);
+  z-index: 3;
 }
 
 .lab-kicker {
@@ -305,6 +385,89 @@
   background: var(--color-chrome);
 }
 
+.lab-systems {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  width: min(280px, calc(100vw - 24px));
+  max-height: min(52%, 420px);
+  overflow: auto;
+  padding: 12px;
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--color-chrome) 82%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-paper) 12%, transparent);
+  backdrop-filter: blur(10px);
+  z-index: 2;
+}
+.lab-systems-list {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.lab-systems-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+}
+.lab-systems-toggles,
+.lab-systems-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.lab-mini {
+  appearance: none;
+  border: 0;
+  background: var(--color-chrome-2);
+  color: var(--color-muted);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-paper) 12%, transparent);
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  min-height: 24px;
+}
+.lab-mini-on {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+.lab-viz-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-uncertain);
+  margin: 8px 0;
+}
+.lab-select {
+  appearance: none;
+  background: var(--color-chrome-2);
+  color: var(--color-paper);
+  border: 0;
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-paper) 14%, transparent);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 0.75rem;
+  min-height: 36px;
+}
+.lab-check-group {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in oklab, var(--color-paper) 12%, transparent);
+}
+.lab-check-group summary {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
 .lab-explode {
   display: flex;
   align-items: center;
@@ -341,7 +504,7 @@
 .lab-challenge {
   top: 12px;
   bottom: auto;
-  left: 12px;
+  left: min(304px, calc(100vw - 24px));
 }
 .lab-drawer {
   top: 12px;
@@ -484,6 +647,18 @@
     left: 8px;
     right: 8px;
     width: auto;
+  }
+  .lab-systems {
+    max-height: 26%;
+    width: calc(100vw - 16px);
+    left: 8px;
+    top: 8px;
+  }
+  .lab-learn {
+    display: none;
+  }
+  .lab-search {
+    flex: 1;
   }
 }
 
