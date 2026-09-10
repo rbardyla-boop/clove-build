@@ -6,6 +6,8 @@ The long-term goal is to let learners disassemble, construct, inspect and safely
 
 v0.2 is one PEI-oriented Part 9 demonstration house with **all major residential trades in the same canonical graph**: foundation, structure, envelope, plumbing, electrical, HVAC, thermal/control layers, and drywall/finish. One construction timeline. One explode/inspect grammar. One provenance ladder.
 
+v0.3 is the public-utility deepening of that same house: semantic space zones, a cross-trade routing engine, control-layer traces, search, Show me why / Show me where, Code Watch metadata, and a shadow rule pack that never ships protected code text.
+
 It is an educational prototype, not a permit approval service or substitute for a qualified professional or authority having jurisdiction.
 
 ## Runtime
@@ -41,7 +43,7 @@ That is:
 
 `npm run test:clove` is the Clove subset only. Do not report its count as the full repository result.
 
-Open **Ryan Trades Test** in the app and walk A–P. **Copy test results** into the next development conversation. A green automated gate is not a passed Ryan Trades Test.
+Open **Ryan Test** in the app and walk **A–Z**. **Copy full test receipt** into the next development conversation. A green automated gate is not a passed Ryan Full-House Test.
 
 ## Architecture
 
@@ -79,4 +81,4 @@ Original Clove software: AGPL-3.0 (see [LICENSE](LICENSE)). Regulatory materials
 
 ## Human test
 
-Open the app → **Ryan Trades Test** → complete A–P → **Copy test results**.
+Open the app → **Ryan Test** → complete A–Z → **Copy full test receipt**.

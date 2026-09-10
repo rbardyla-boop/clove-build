@@ -4,25 +4,35 @@ import { useLab } from "@/crates/session/store";
 const TESTS = [
   { id: "A", title: "Orbit finished house", body: "Orbit completely around the completed house." },
   { id: "B", title: "Scrub construction", body: "Scrub from foundation to finished house and back." },
-  { id: "C", title: "Trade layers", body: "Toggle every trade layer independently (on / ghost / off)." },
-  { id: "D", title: "Whole explode", body: "Explode the complete house, then collapse." },
-  { id: "E", title: "Exterior wall explode", body: "Explode an exterior wall assembly." },
-  { id: "F", title: "Bathroom / service wall", body: "Explode the bathroom wet wall and read the layers." },
-  { id: "G", title: "Plumbing trace", body: "Trace kitchen or bath plumbing to the building drain / source." },
-  { id: "H", title: "Electrical trace", body: "Trace a receptacle, light or device to the electrical panel." },
-  { id: "I", title: "HVAC / exhaust trace", body: "Trace a ventilation or HVAC path." },
-  { id: "J", title: "Hide drywall", body: "Hide finish / x-ray and inspect concealed systems." },
-  { id: "K", title: "Break structure", body: "Break one structural dependency (Break It)." },
-  { id: "L", title: "Break plumbing", body: "Break one plumbing connection, then check topology." },
-  { id: "M", title: "Break electrical", body: "Break one electrical topology connection, then trace." },
-  { id: "N", title: "Whole-house CHECK", body: "Run CHECK and inspect findings by authority class." },
-  { id: "O", title: "Reset", body: "RESET and confirm exact baseline recovery." },
-  { id: "P", title: "Explode after reset", body: "Repeat explode / collapse after reset." },
+  { id: "C", title: "Explode complete house", body: "Explode the complete house, then collapse." },
+  { id: "D", title: "Explode exterior wall", body: "Explode an exterior wall assembly layer by layer." },
+  { id: "E", title: "Explode bathroom wall", body: "Explode the bathroom wet wall and read finish → services → framing." },
+  { id: "F", title: "Trace kitchen cold supply", body: "Trace kitchen cold from fixture under the floor to the stack." },
+  { id: "G", title: "Trace kitchen drain", body: "Trace kitchen drain: trap → branch → stack → building drain." },
+  { id: "H", title: "Trace plumbing vent", body: "Trace kitchen or stack vent through the attic, not the room." },
+  { id: "I", title: "Trace receptacle to panel", body: "Trace a receptacle to the main panel." },
+  { id: "J", title: "Trace bathroom exhaust", body: "Trace bath exhaust fan → duct → outlet." },
+  { id: "K", title: "Trace water-control layer", body: "Use control-layer water and follow WRB / flashing." },
+  { id: "L", title: "Trace air-control layer", body: "Use control-layer air on the teaching wall." },
+  { id: "M", title: "Hide finish / rough-in", body: "Hide finish or rewind time and inspect concealed work." },
+  { id: "N", title: "Inspect a penetration", body: "Select a foundation or floor penetration and read host/trade." },
+  { id: "O", title: "Search header", body: "Search “header” and jump to a framed opening." },
+  { id: "P", title: "Search main panel", body: "Search “main panel” and fit camera." },
+  { id: "Q", title: "Break framing", body: "Break It: remove a jack under a header, then Check." },
+  { id: "R", title: "Break plumbing", body: "Remove a trap or drain, then Check topology." },
+  { id: "S", title: "Break electrical", body: "Remove a branch cable, then Trace." },
+  { id: "T", title: "Occupied-space routing fault", body: "Challenge: A pipe through the room. Check must FAIL CROSS-ROUTE-001. Reset must restore the planned graph." },
+  { id: "U", title: "Whole-house Check", body: "Run Check and read findings by domain and authority class." },
+  { id: "V", title: "Show me why", body: "On a FAIL finding, press Show me why." },
+  { id: "W", title: "MISSING_INFORMATION", body: "Confirm at least one MISSING_INFORMATION result (climatic / energy / licensed text)." },
+  { id: "X", title: "UNCERTAIN", body: "Confirm at least one UNCERTAIN result (e.g. NBC 2025 not adopted in PEI)." },
+  { id: "Y", title: "Reset", body: "Reset and confirm exact baseline recovery." },
+  { id: "Z", title: "Baseline after reset", body: "Explode / collapse after reset; graph identity unchanged." },
 ] as const;
 
 type Mark = "PASS" | "FAIL" | "NOTE" | "";
 
-const KEY = "clove.ryan-trades-test.v02";
+const KEY = "clove.ryan-full-house-test.v03";
 
 export function RyanTest() {
   const open = useLab((s) => s.showRyanTest);
@@ -49,7 +59,7 @@ export function RyanTest() {
 
   const text = useMemo(() => {
     const lines = [
-      "CLOVE BUILD LAB — RYAN TRADES TEST",
+      "CLOVE BUILD LAB — RYAN FULL-HOUSE TEST A–Z",
       `Date: ${new Date().toISOString()}`,
       "",
       ...TESTS.map((t) => {
@@ -64,11 +74,11 @@ export function RyanTest() {
   if (!open) return null;
 
   return (
-    <aside className="lab-drawer" aria-label="Ryan Trades Test">
+    <aside className="lab-drawer" aria-label="Ryan Full-House Test">
       <header className="lab-check-head">
         <div>
           <p className="lab-kicker">Human test card</p>
-          <h2>Ryan Trades Test</h2>
+          <h2>Ryan Full-House Test</h2>
         </div>
         <button type="button" className="lab-btn" onClick={() => dispatch({ type: "TOGGLE_RYAN_TEST" })}>
           Close
@@ -78,26 +88,29 @@ export function RyanTest() {
         {TESTS.map((t) => (
           <li key={t.id}>
             <p>
-              <strong>TEST {t.id}</strong> {t.title}
+              <strong>
+                {t.id}. {t.title}
+              </strong>
             </p>
             <p className="lab-muted">{t.body}</p>
-            <div className="lab-inspect-actions">
+            <div className="lab-test-marks">
               {(["PASS", "FAIL", "NOTE"] as const).map((m) => (
                 <button
                   key={m}
                   type="button"
-                  className={marks[t.id] === m ? "lab-btn lab-btn-on" : "lab-btn"}
-                  onClick={() => setMarks((prev) => ({ ...prev, [t.id]: m }))}
+                  className={marks[t.id] === m ? "lab-mini lab-mini-on" : "lab-mini"}
+                  onClick={() => setMarks((prev) => ({ ...prev, [t.id]: prev[t.id] === m ? "" : m }))}
                 >
                   {m}
                 </button>
               ))}
             </div>
             <input
-              className="lab-input"
+              className="lab-test-note"
               placeholder="Note"
               value={notes[t.id] ?? ""}
               onChange={(e) => setNotes((prev) => ({ ...prev, [t.id]: e.target.value }))}
+              aria-label={`Note for test ${t.id}`}
             />
           </li>
         ))}
@@ -105,20 +118,11 @@ export function RyanTest() {
       <button
         type="button"
         className="lab-btn lab-btn-accent"
-        onClick={async () => {
-          try {
-            await navigator.clipboard.writeText(text);
-          } catch {
-            const area = document.createElement("textarea");
-            area.value = text;
-            document.body.appendChild(area);
-            area.select();
-            document.execCommand("copy");
-            area.remove();
-          }
+        onClick={() => {
+          void navigator.clipboard.writeText(text);
         }}
       >
-        Copy test results
+        Copy full test receipt
       </button>
     </aside>
   );

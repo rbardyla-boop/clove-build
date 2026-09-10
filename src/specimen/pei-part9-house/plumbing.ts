@@ -1,6 +1,6 @@
 import type { MaterialDescriptor, SystemConnection, Vec3 } from "@/crates/building-graph/types";
 import { addAssembly, addBox, MAT, PROV_EDU, segmentBox } from "./helper";
-import { P, Y, halfL, halfW } from "./params";
+import { P, Y, halfL } from "./params";
 import type { Registry } from "./registry";
 
 const COLD = 0.022;
@@ -73,6 +73,14 @@ export function addPlumbing(reg: Registry) {
   const fixtureY = Y.floorTop + 0.42;
   const ventY = Y.wallTop + 0.35;
   const roofY = Y.ridgeY + 0.15;
+  // Hung below the joists, in the basement, under the subfloor — not through living space.
+  const underColdY = Y.sillTop - 0.05;
+  const underHotY = Y.sillTop - 0.13;
+  const kitX = 2.75;
+  const kitZ = 3.12;
+  const kitXHot = 2.68;
+  const kitZHot = 3.04;
+  const kitSinkY = Y.floorTop + 0.88;
 
   addBox(reg, {
     id: "plumbing.waterheater.001",
@@ -358,7 +366,7 @@ export function addPlumbing(reg: Registry) {
     penetration: { hostId: "assembly.wall.bath.plate.bottom", tradeComponentId: "plumbing.dwv.stack.001", purpose: "dwv-stack" },
   });
 
-  // Vents
+  // Vents — kitchen vent rises at the fixture wall, then crosses in the attic, not through the room.
   pipe(reg, "plumbing.vent.stack.001", "Stack vent through roof", "pipe-vent",
     [stackX, ventY, stackZ], [stackX, roofY, stackZ], VENT, MAT.pvc, 15,
     ["plumbing", "vent"], "Stack vent terminating above the roof.",
@@ -386,25 +394,84 @@ export function addPlumbing(reg: Registry) {
     [stackX, fixtureY + 0.55, -0.75], [stackX, fixtureY + 0.55, stackZ], VENT, MAT.pvc, 15,
     ["plumbing", "vent", "bath"], "Dry vent from the lavatory.", "Connect the lavatory to the vent system.",
     { explodeGroup: "assembly.wall.bath", explodeVector: [1.5, 0.5, 0], local: [0.5, 0.2, 0], parentId: "assembly.wall.bath" });
-  pipe(reg, "plumbing.vent.kitchen.001", "Kitchen vent", "pipe-vent",
-    [2.75, fixtureY + 0.5, 3.05], [stackX, fixtureY + 0.5, 3.05], VENT, MAT.pvc, 15,
-    ["plumbing", "vent", "kitchen"], "Vent from the kitchen sink toward the stack.", "Keep the kitchen trap from siphoning — educational topology.");
-  pipe(reg, "plumbing.vent.kitchen.002", "Kitchen vent riser", "pipe-vent",
-    [stackX, fixtureY + 0.5, 3.05], [stackX, fixtureY + 0.5, stackZ], VENT, MAT.pvc, 15,
-    ["plumbing", "vent", "kitchen"], "Kitchen vent joining the stack vent.", "Tie kitchen venting into the main stack.");
+  pipe(reg, "plumbing.vent.kitchen.rise", "Kitchen vent riser", "pipe-vent",
+    [kitX, Y.floorTop + 0.7, 3.05], [kitX, ventY, 3.05], VENT, MAT.pvc, 15,
+    ["plumbing", "vent", "kitchen"], "Kitchen vent rising in the service wall, not through the room.",
+    "Take the kitchen trap to the attic/ceiling plane. This is topology, not an NPC vent table.",
+    { explodeGroup: "assembly.wall.front", explodeVector: [0, 0.5, 1.7], local: [0, 0.2, 0.45], parentId: "assembly.wall.front" });
+  pipe(reg, "plumbing.vent.kitchen.001", "Kitchen vent through attic", "pipe-vent",
+    [kitX, ventY, 3.05], [stackX, ventY, 3.05], VENT, MAT.pvc, 15,
+    ["plumbing", "vent", "kitchen"], "Kitchen vent crossing above the ceiling to the stack.",
+    "Keep the kitchen trap from siphoning — educational topology in the attic, not occupied space.");
+  pipe(reg, "plumbing.vent.kitchen.002", "Kitchen vent to stack", "pipe-vent",
+    [stackX, ventY, 3.05], [stackX, ventY, stackZ], VENT, MAT.pvc, 15,
+    ["plumbing", "vent", "kitchen"], "Kitchen vent joining the stack vent above the ceiling.",
+    "Tie kitchen venting into the main stack in the attic plane.");
 
-  pipe(reg, "plumbing.supply.cold.kitchen.001", "Cold to kitchen", "pipe-supply",
-    [stackX, fixtureY + 0.2, coldZ], [2.75, fixtureY + 0.2, coldZ], COLD, MAT.pex, 15,
-    ["plumbing", "supply", "cold", "kitchen"], "Cold distribution to the kitchen sink.", "Serve the kitchen.");
-  pipe(reg, "plumbing.supply.cold.kitchen.002", "Cold kitchen drop", "pipe-supply",
-    [2.75, fixtureY + 0.2, coldZ], [2.75, fixtureY + 0.2, 3.15], COLD, MAT.pex, 15,
-    ["plumbing", "supply", "cold", "kitchen"], "Cold drop at the kitchen sink.", "Arrive at the fixture.");
-  pipe(reg, "plumbing.supply.hot.kitchen.001", "Hot to kitchen", "pipe-supply",
-    [stackX, fixtureY + 0.35, hotZ], [2.75, fixtureY + 0.35, hotZ], HOT, MAT.pex, 15,
-    ["plumbing", "supply", "hot", "kitchen"], "Hot distribution to the kitchen sink.", "Serve the kitchen.");
-  pipe(reg, "plumbing.supply.hot.kitchen.002", "Hot kitchen drop", "pipe-supply",
-    [2.75, fixtureY + 0.35, hotZ], [2.75, fixtureY + 0.35, 3.15], HOT, MAT.pex, 15,
-    ["plumbing", "supply", "hot", "kitchen"], "Hot drop at the kitchen sink.", "Arrive at the fixture.");
+  // Kitchen supply hung below the joists, then rising through the floor at the fixture.
+  pipe(reg, "plumbing.supply.cold.kitchen.001", "Cold to kitchen under floor", "pipe-supply",
+    [stackX, underColdY, coldZ], [kitX, underColdY, coldZ], COLD, MAT.pex, 15,
+    ["plumbing", "supply", "cold", "kitchen"], "Cold distribution hung under the joists.",
+    "Serve the kitchen without crossing occupied living space.");
+  pipe(reg, "plumbing.supply.cold.kitchen.002", "Cold kitchen run to fixture", "pipe-supply",
+    [kitX, underColdY, coldZ], [kitX, underColdY, kitZ], COLD, MAT.pex, 15,
+    ["plumbing", "supply", "cold", "kitchen"], "Cold turn under the kitchen toward the sink.",
+    "Arrive under the fixture before rising.");
+  pipe(reg, "plumbing.supply.cold.kitchen.003", "Cold kitchen rise", "pipe-supply",
+    [kitX, underColdY, kitZ], [kitX, kitSinkY, kitZ], COLD, MAT.pex, 15,
+    ["plumbing", "supply", "cold", "kitchen"], "Cold rise through the floor at the kitchen sink.",
+    "The only above-floor kitchen supply is the fixture riser.",
+    { explodeGroup: "assembly.wall.front", explodeVector: [0, 0.35, 1.6], local: [0, 0.15, 0.4], parentId: "assembly.wall.front" });
+  pipe(reg, "plumbing.supply.hot.kitchen.001", "Hot to kitchen under floor", "pipe-supply",
+    [stackX, underHotY, hotZ], [kitXHot, underHotY, hotZ], HOT, MAT.pex, 15,
+    ["plumbing", "supply", "hot", "kitchen"], "Hot distribution hung under the joists.",
+    "Serve the kitchen without crossing occupied living space.");
+  pipe(reg, "plumbing.supply.hot.kitchen.002", "Hot kitchen run to fixture", "pipe-supply",
+    [kitXHot, underHotY, hotZ], [kitXHot, underHotY, kitZHot], HOT, MAT.pex, 15,
+    ["plumbing", "supply", "hot", "kitchen"], "Hot turn under the kitchen toward the sink.",
+    "Arrive under the fixture before rising.");
+  pipe(reg, "plumbing.supply.hot.kitchen.003", "Hot kitchen rise", "pipe-supply",
+    [kitXHot, underHotY, kitZHot], [kitXHot, kitSinkY - 0.06, kitZHot], HOT, MAT.pex, 15,
+    ["plumbing", "supply", "hot", "kitchen"], "Hot rise through the floor at the kitchen sink.",
+    "The only above-floor kitchen hot supply is the fixture riser.",
+    { explodeGroup: "assembly.wall.front", explodeVector: [0, 0.35, 1.65], local: [0, 0.15, 0.42], parentId: "assembly.wall.front" });
+
+  addBox(reg, {
+    id: "penetration.floor.plumbing.cold.kitchen",
+    type: "penetration",
+    label: "Kitchen cold-supply floor penetration",
+    parentId: "assembly.floor",
+    trade: "plumbing",
+    center: [kitX, Y.floorTop, kitZ],
+    size: [0.06, 0.05, 0.06],
+    material: MAT.wood,
+    stage: 15,
+    explodeGroup: "assembly.floor",
+    explodeVector: [0, 0.7, 0],
+    tags: ["plumbing", "penetration", "kitchen"],
+    short: "Opening where cold supply rises through the subfloor at the kitchen.",
+    purpose: "Host/trade penetration so the kitchen rise is an intended opening, not a clash.",
+    penetration: { hostId: "subfloor.5", tradeComponentId: "plumbing.supply.cold.kitchen.003", purpose: "kitchen-cold-riser" },
+    dependencies: ["plumbing.supply.cold.kitchen.003"],
+  });
+  addBox(reg, {
+    id: "penetration.floor.plumbing.hot.kitchen",
+    type: "penetration",
+    label: "Kitchen hot-supply floor penetration",
+    parentId: "assembly.floor",
+    trade: "plumbing",
+    center: [kitXHot, Y.floorTop, kitZHot],
+    size: [0.06, 0.05, 0.06],
+    material: MAT.wood,
+    stage: 15,
+    explodeGroup: "assembly.floor",
+    explodeVector: [0, 0.7, 0],
+    tags: ["plumbing", "penetration", "kitchen"],
+    short: "Opening where hot supply rises through the subfloor at the kitchen.",
+    purpose: "Host/trade penetration for the kitchen hot riser.",
+    penetration: { hostId: "subfloor.5", tradeComponentId: "plumbing.supply.hot.kitchen.003", purpose: "kitchen-hot-riser" },
+    dependencies: ["plumbing.supply.hot.kitchen.003"],
+  });
 }
 
 export const PLUMBING_CONNECTIONS: SystemConnection[] = [
@@ -418,7 +485,8 @@ export const PLUMBING_CONNECTIONS: SystemConnection[] = [
   { id: "pl.cold.tub", from: "plumbing.supply.cold.stack.001", to: "plumbing.fixture.tub.bath", kind: "cold" },
   { id: "pl.cold.kit1", from: "plumbing.supply.cold.stack.001", to: "plumbing.supply.cold.kitchen.001", kind: "cold" },
   { id: "pl.cold.kit2", from: "plumbing.supply.cold.kitchen.001", to: "plumbing.supply.cold.kitchen.002", kind: "cold" },
-  { id: "pl.cold.kit3", from: "plumbing.supply.cold.kitchen.002", to: "plumbing.fixture.sink.kitchen", kind: "cold" },
+  { id: "pl.cold.kit3", from: "plumbing.supply.cold.kitchen.002", to: "plumbing.supply.cold.kitchen.003", kind: "cold" },
+  { id: "pl.cold.kit4", from: "plumbing.supply.cold.kitchen.003", to: "plumbing.fixture.sink.kitchen", kind: "cold" },
   { id: "pl.hot.riser", from: "plumbing.waterheater.001", to: "plumbing.supply.hot.riser.001", kind: "hot" },
   { id: "pl.hot.to-stack", from: "plumbing.supply.hot.riser.001", to: "plumbing.supply.hot.to-stack.001", kind: "hot" },
   { id: "pl.hot.stack", from: "plumbing.supply.hot.to-stack.001", to: "plumbing.supply.hot.stack.001", kind: "hot" },
@@ -426,7 +494,8 @@ export const PLUMBING_CONNECTIONS: SystemConnection[] = [
   { id: "pl.hot.tub", from: "plumbing.supply.hot.stack.001", to: "plumbing.fixture.tub.bath", kind: "hot" },
   { id: "pl.hot.kit1", from: "plumbing.supply.hot.stack.001", to: "plumbing.supply.hot.kitchen.001", kind: "hot" },
   { id: "pl.hot.kit2", from: "plumbing.supply.hot.kitchen.001", to: "plumbing.supply.hot.kitchen.002", kind: "hot" },
-  { id: "pl.hot.kit3", from: "plumbing.supply.hot.kitchen.002", to: "plumbing.fixture.sink.kitchen", kind: "hot" },
+  { id: "pl.hot.kit3", from: "plumbing.supply.hot.kitchen.002", to: "plumbing.supply.hot.kitchen.003", kind: "hot" },
+  { id: "pl.hot.kit4", from: "plumbing.supply.hot.kitchen.003", to: "plumbing.fixture.sink.kitchen", kind: "hot" },
   { id: "pl.dwv.toilet", from: "plumbing.fixture.toilet.bath", to: "plumbing.dwv.branch.toilet.001", kind: "drain" },
   { id: "pl.dwv.toilet2", from: "plumbing.dwv.branch.toilet.001", to: "plumbing.dwv.stack.001", kind: "drain" },
   { id: "pl.dwv.lav1", from: "plumbing.fixture.sink.bath", to: "plumbing.dwv.trap.lav.001", kind: "drain" },
@@ -443,8 +512,8 @@ export const PLUMBING_CONNECTIONS: SystemConnection[] = [
   { id: "pl.vent.stack", from: "plumbing.dwv.stack.001", to: "plumbing.vent.stack.001", kind: "vent" },
   { id: "pl.vent.lav", from: "plumbing.dwv.trap.lav.001", to: "plumbing.vent.lav.001", kind: "vent" },
   { id: "pl.vent.lav2", from: "plumbing.vent.lav.001", to: "plumbing.vent.stack.001", kind: "vent" },
-  { id: "pl.vent.kit", from: "plumbing.dwv.trap.kitchen.001", to: "plumbing.vent.kitchen.001", kind: "vent" },
-  { id: "pl.vent.kit2", from: "plumbing.vent.kitchen.001", to: "plumbing.vent.kitchen.002", kind: "vent" },
-  { id: "pl.vent.kit3", from: "plumbing.vent.kitchen.002", to: "plumbing.vent.stack.001", kind: "vent" },
+  { id: "pl.vent.kit", from: "plumbing.dwv.trap.kitchen.001", to: "plumbing.vent.kitchen.rise", kind: "vent" },
+  { id: "pl.vent.kit2", from: "plumbing.vent.kitchen.rise", to: "plumbing.vent.kitchen.001", kind: "vent" },
+  { id: "pl.vent.kit3", from: "plumbing.vent.kitchen.001", to: "plumbing.vent.kitchen.002", kind: "vent" },
+  { id: "pl.vent.kit4", from: "plumbing.vent.kitchen.002", to: "plumbing.vent.stack.001", kind: "vent" },
 ];
-

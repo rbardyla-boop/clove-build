@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { buildPeiHouse } from "../../specimen/pei-part9-house/index.ts";
+import { Y } from "../../specimen/pei-part9-house/params.ts";
 import { findClashes } from "./engine.ts";
 
 describe("clash engine", () => {
@@ -26,5 +27,47 @@ describe("clash engine", () => {
   it("system nodes resolve", () => {
     const bad = findClashes(graph).filter((c) => c.kind === "DISCONNECTED_SYSTEM");
     assert.deepEqual(bad, []);
+  });
+
+  it("intact specimen has no occupied-space distribution runs", () => {
+    const occupied = findClashes(graph).filter((c) => c.kind === "OCCUPIED_SPACE");
+    assert.deepEqual(occupied, []);
+  });
+
+  it("kitchen supply hangs under the subfloor", () => {
+    for (const id of [
+      "plumbing.supply.cold.kitchen.001",
+      "plumbing.supply.cold.kitchen.002",
+      "plumbing.supply.hot.kitchen.001",
+      "plumbing.supply.hot.kitchen.002",
+    ]) {
+      const c = graph.components[id];
+      assert.ok(c, id);
+      assert.ok(
+        c.geometry.center[1] < Y.floorTop,
+        `${id} y=${c.geometry.center[1]} is not under floorTop=${Y.floorTop}`,
+      );
+    }
+    assert.ok(graph.components["plumbing.supply.cold.kitchen.003"]);
+    assert.ok(graph.components["penetration.floor.plumbing.cold.kitchen"]);
+  });
+
+  it("flags a long supply run through occupied living space (ROUTE-001)", () => {
+    const template = graph.components["plumbing.supply.cold.kitchen.001"]!;
+    const clone = structuredClone(graph);
+    clone.components["pipe.midroom.test"] = {
+      ...structuredClone(template),
+      id: "pipe.midroom.test",
+      label: "Mid-room kitchen run",
+      parentId: "assembly.plumbing",
+      geometry: { kind: "box", center: [0, Y.floorTop + 0.65, 0], size: [4.2, 0.022, 0.022] },
+      assembly: { ...template.assembly, explodeGroup: "assembly.plumbing" },
+      tags: ["plumbing", "supply", "cold"],
+    };
+    const hits = findClashes(clone).filter((c) => c.kind === "OCCUPIED_SPACE");
+    assert.ok(
+      hits.some((h) => h.a === "pipe.midroom.test"),
+      `expected occupied-space hit, got ${JSON.stringify(hits)}`,
+    );
   });
 });

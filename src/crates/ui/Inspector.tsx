@@ -2,6 +2,7 @@ import { authorityLabel, dimLines, parentLabel, stageName } from "@/crates/inspe
 import { descendants } from "@/crates/building-graph/integrity";
 import { tradeOf } from "@/crates/trades/infer";
 import { TRADE_LABELS } from "@/crates/trades/crate";
+import { classifyComponent } from "@/crates/space-model/classify";
 import { useLab } from "@/crates/session/store";
 
 export function Inspector() {
@@ -14,12 +15,29 @@ export function Inspector() {
   const isolateSelected = useLab((s) => s.isolateSelected);
   const isolatedIds = useLab((s) => s.isolatedIds);
   const trace = useLab((s) => s.trace);
+  const viewDepth = useLab((s) => s.viewDepth);
 
   if (!selectedId) {
     return (
       <aside className="lab-inspector" aria-label="Inspector">
         <p className="lab-kicker">Inspect</p>
-        <p className="lab-muted">Click a member in the house. The graph, not the mesh name, is the source of truth.</p>
+        <p className="lab-muted">Click a member. The graph, not the mesh name, is the source of truth.</p>
+        <div className="lab-inspect-actions">
+          <button
+            type="button"
+            className={viewDepth === "learn" ? "lab-mini lab-mini-on" : "lab-mini"}
+            onClick={() => dispatch({ type: "SET_VIEW_DEPTH", depth: "learn" })}
+          >
+            Learn
+          </button>
+          <button
+            type="button"
+            className={viewDepth === "technical" ? "lab-mini lab-mini-on" : "lab-mini"}
+            onClick={() => dispatch({ type: "SET_VIEW_DEPTH", depth: "technical" })}
+          >
+            Technical
+          </button>
+        </div>
       </aside>
     );
   }
@@ -44,6 +62,8 @@ export function Inspector() {
     c.type === "drywall" || c.type === "paint"
       ? "Conceals framing, insulation, and rough services until you x-ray, hide finish, or rewind time."
       : null;
+  const zone = classifyComponent(graph, c);
+  const learn = viewDepth === "learn";
 
   return (
     <aside className="lab-inspector" aria-label="Inspector">
@@ -51,19 +71,41 @@ export function Inspector() {
         {c.type.replace(/-/g, " ")} · {TRADE_LABELS[trade]}
       </p>
       <h2 className="lab-inspect-title">{c.label}</h2>
+      <div className="lab-inspect-actions">
+        <button
+          type="button"
+          className={learn ? "lab-mini lab-mini-on" : "lab-mini"}
+          onClick={() => dispatch({ type: "SET_VIEW_DEPTH", depth: "learn" })}
+        >
+          Learn
+        </button>
+        <button
+          type="button"
+          className={!learn ? "lab-mini lab-mini-on" : "lab-mini"}
+          onClick={() => dispatch({ type: "SET_VIEW_DEPTH", depth: "technical" })}
+        >
+          Technical
+        </button>
+      </div>
       {removed ? <p className="lab-pill lab-pill-fail">Removed</p> : null}
       <dl className="lab-dl">
-        <div>
-          <dt>Id</dt>
-          <dd className="lab-mono">{c.id}</dd>
-        </div>
+        {!learn ? (
+          <div>
+            <dt>Id</dt>
+            <dd className="lab-mono">{c.id}</dd>
+          </div>
+        ) : null}
         <div>
           <dt>Dimensions</dt>
-          <dd>{dims.both}</dd>
+          <dd>{learn ? dims.metric : dims.both}</dd>
         </div>
         <div>
           <dt>Material</dt>
           <dd>{c.material.label}</dd>
+        </div>
+        <div>
+          <dt>Space</dt>
+          <dd>{zone.replaceAll("_", " ").toLowerCase()}</dd>
         </div>
         <div>
           <dt>Phase</dt>
@@ -101,10 +143,10 @@ export function Inspector() {
             </dd>
           </div>
         ) : null}
-        {links.length ? (
+        {!learn && links.length ? (
           <div>
             <dt>Connected to</dt>
-            <dd>{links.slice(0, 6).join("; ")}</dd>
+            <dd>{links.slice(0, 8).join("; ")}</dd>
           </div>
         ) : null}
         {c.penetration ? (
@@ -112,6 +154,14 @@ export function Inspector() {
             <dt>Penetration</dt>
             <dd>
               {c.penetration.purpose} through {graph.components[c.penetration.hostId]?.label ?? c.penetration.hostId}
+            </dd>
+          </div>
+        ) : null}
+        {!learn ? (
+          <div>
+            <dt>Provenance</dt>
+            <dd>
+              {c.provenance.authority ?? "UNKNOWN"} · {c.provenance.status}
             </dd>
           </div>
         ) : null}
@@ -125,7 +175,38 @@ export function Inspector() {
         <span className="lab-muted"> · {c.provenance.status}</span>
       </p>
       <div className="lab-inspect-actions">
-        {c.system ? (
+        {trade === "plumbing" ? (
+          <>
+            <button type="button" className="lab-btn" onClick={() => dispatch({ type: "TRACE_FROM", id: c.id, kinds: ["cold", "hot"] })}>
+              Trace supply
+            </button>
+            <button type="button" className="lab-btn" onClick={() => dispatch({ type: "TRACE_FROM", id: c.id, kinds: ["drain"] })}>
+              Trace drain
+            </button>
+            <button type="button" className="lab-btn" onClick={() => dispatch({ type: "TRACE_FROM", id: c.id, kinds: ["vent"] })}>
+              Trace vent
+            </button>
+          </>
+        ) : null}
+        {trade === "electrical" ? (
+          <button type="button" className="lab-btn" onClick={() => dispatch({ type: "TRACE_FROM", id: c.id, kinds: ["circuit", "bonding"] })}>
+            Trace to panel
+          </button>
+        ) : null}
+        {trade === "hvac" ? (
+          <>
+            <button type="button" className="lab-btn" onClick={() => dispatch({ type: "TRACE_FROM", id: c.id, kinds: ["air-supply"] })}>
+              Trace supply
+            </button>
+            <button type="button" className="lab-btn" onClick={() => dispatch({ type: "TRACE_FROM", id: c.id, kinds: ["air-return"] })}>
+              Trace return
+            </button>
+            <button type="button" className="lab-btn" onClick={() => dispatch({ type: "TRACE_FROM", id: c.id, kinds: ["exhaust"] })}>
+              Trace exhaust
+            </button>
+          </>
+        ) : null}
+        {c.system && trade !== "plumbing" && trade !== "electrical" && trade !== "hvac" ? (
           <button
             type="button"
             className={trace?.seedId === c.id ? "lab-btn lab-btn-on" : "lab-btn"}
@@ -149,7 +230,7 @@ export function Inspector() {
           Explode assembly
         </button>
         <button type="button" className="lab-btn" onClick={() => dispatch({ type: "FIT_SELECTED" })}>
-          Fit camera
+          Show me where
         </button>
         {mode === "break-it" && c.geometry.kind === "box" ? (
           removed ? (

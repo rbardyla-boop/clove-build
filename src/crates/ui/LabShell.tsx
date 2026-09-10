@@ -7,6 +7,7 @@ import { CheckDrawer } from "./CheckDrawer";
 import { DiagPanel } from "./DiagPanel";
 import { Hint } from "./Hint";
 import { Inspector } from "./Inspector";
+import { LearnPanel } from "./LearnPanel";
 import { RyanTest } from "./RyanTest";
 import { Scrubber } from "./Scrubber";
 import { SystemsPanel } from "./SystemsPanel";
@@ -53,7 +54,10 @@ export function LabShell() {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
-      if (e.key === "Escape") {
+      if (e.key === "/" && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        document.getElementById("clove-search")?.focus();
+      } else if (e.key === "Escape") {
         dispatch({ type: "SELECT_COMPONENT", id: null });
         dispatch({ type: "CLEAR_CHECK" });
       } else if (e.key === "ArrowRight") {
@@ -85,6 +89,7 @@ export function LabShell() {
         {Viewport ? <Viewport /> : <div className="lab-stage lab-stage-boot">Loading laboratory…</div>}
         <SystemsPanel />
         <Inspector />
+        <LearnPanel />
         <Hint />
         <ChallengeBanner />
         <CheckDrawer />

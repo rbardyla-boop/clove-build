@@ -49,6 +49,8 @@ describe("rule authority gauntlet", () => {
     assert.equal(results.find((r) => r.ruleId === "PLUMB-TOPOLOGY-001")!.verdict, "PASS");
     assert.equal(results.find((r) => r.ruleId === "ELEC-TOPOLOGY-001")!.verdict, "PASS");
     assert.equal(results.find((r) => r.ruleId === "HVAC-TOPOLOGY-001")!.verdict, "PASS");
+    assert.equal(results.find((r) => r.ruleId === "CROSS-ROUTE-001")!.verdict, "PASS");
+    assert.equal(results.find((r) => r.ruleId === "CROSS-ROUTE-002")!.verdict, "PASS");
   });
 
   it("AI_INFERRED is never a PASS", () => {
@@ -56,6 +58,14 @@ describe("rule authority gauntlet", () => {
       if (r.provenance.authority === "AI_INFERRED" || r.provenance.authority === "INFERENCE") {
         assert.notEqual(r.verdict, "PASS");
       }
+    }
+  });
+
+  it("shipped evaluations never quote official code text", () => {
+    for (const r of run()) {
+      assert.equal(r.sourceText, "NOT_DISTRIBUTED");
+      assert.equal(r.licenceState, "content-rights-not-granted");
+      assert.notEqual(r.provenance.wording, "quoted");
     }
   });
 });

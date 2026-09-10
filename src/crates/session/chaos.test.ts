@@ -36,6 +36,10 @@ function fingerprint(s: LabSnapshot) {
     hideFinish: s.hideFinish,
     trace: s.trace,
     check: s.check?.map((r) => r.ruleId) ?? null,
+    faultIds: s.faultIds,
+    searchQuery: s.searchQuery,
+    viewDepth: s.viewDepth,
+    lessonId: s.lessonId,
   });
 }
 

@@ -70,4 +70,16 @@ describe("integrated trades house", () => {
     const stack = graph.components["plumbing.dwv.stack.001"]!;
     assert.ok(vecLen(explodeOffset(graph, stack, 1, wall)) > 0);
   });
+
+  it("kitchen water lines are under the subfloor, not in the room", () => {
+    const floorTop = graph.components["subfloor.0"]!.geometry.center[1] + graph.components["subfloor.0"]!.geometry.size[1] / 2;
+    for (const id of [
+      "plumbing.supply.cold.kitchen.001",
+      "plumbing.supply.cold.kitchen.002",
+      "plumbing.supply.hot.kitchen.001",
+      "plumbing.supply.hot.kitchen.002",
+    ]) {
+      assert.ok(graph.components[id]!.geometry.center[1] < floorTop, id);
+    }
+  });
 });

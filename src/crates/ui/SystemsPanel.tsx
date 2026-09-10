@@ -15,7 +15,11 @@ const FLOWS: { id: FlowMode; label: string }[] = [
   { id: "airflow-supply", label: "Supply air" },
   { id: "airflow-return", label: "Return" },
   { id: "airflow-exhaust", label: "Exhaust" },
-  { id: "control-layers", label: "Control layers" },
+  { id: "control-layers", label: "All control" },
+  { id: "control-water", label: "Water" },
+  { id: "control-air", label: "Air" },
+  { id: "control-vapour", label: "Vapour" },
+  { id: "control-thermal", label: "Thermal" },
 ];
 
 export function SystemsPanel() {

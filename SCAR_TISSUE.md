@@ -20,5 +20,9 @@ Failures found during construction and the permanent detector for each.
 | TRADE-GRAPH-001: bath cable occupied a solid stud volume | MECHANISM | Cable rerouted between studs (`electrical.cable.bath.003`); clash engine treats registered penetrations as intended openings |
 | AUTHORITY-001: temptation to encode NPC/CEC clause PASS without licensed text | CONCEPT | `PLUMB-NPC-TEXT-001` / `ELEC-CEC-TEXT-001` / energy-path always MISSING or UNCERTAIN; authority gauntlet |
 | RESET-002: trade-layer / TRACE / hide-finish leftover after RESET | IMPLEMENTATION | `createSnapshot` restores default layers; reset-invariant + chaos gauntlets |
+| ROUTE-001: kitchen hot/cold and kitchen vent ran through occupied living space at fixture height | CONCEPT | Occupied-space finder (`OCCUPIED_SPACE`); kitchen supply hung under joists + attic vent; `CROSS-ROUTE-001`; clash test injects a mid-room run |
+| ROUTE-002: receptacle branch ran diagonally through the room from joist bay to device | MECHANISM | Split `electrical.cable.receptacles.001` (joist) / `.002` (wall rise) |
+| ROUTE-003: Check could not see overlay routing faults because rules rebuilt `buildPeiHouse()` instead of the working graph | IMPLEMENTATION | `RuleContext.graph`; `graphWithFaults` overlay; challenge `challenge.cross.occupied-route` |
+| LICENCE-001: temptation to ship NBC/NPC/CEC paragraphs because PDFs are free to read | CONCEPT | Shadow pack `sourceText: NOT_DISTRIBUTED`; gitignored `private-reference/`; contribution schema rejects wording without rights |
 
-Gauntlet classes still expected from the human Ryan Trades Test: transform attack, mode collision, rapid scrub, selection of tight framing, resize, trade-layer vs TRACE, explode-after-reset.
+Gauntlet classes still expected from the human Ryan Full-House Test A–Z.

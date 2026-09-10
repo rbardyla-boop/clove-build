@@ -1,4 +1,5 @@
 import type { BuildingGraph } from "@/crates/building-graph/types";
+import { DEFAULT_LICENCE_STATE, DEFAULT_SOURCE_TEXT } from "@/crates/provenance/types";
 import { demoRules } from "@/rule-packs/demo/rules";
 import type { Rule, RuleContext, RuleEvaluation, RuleLookup, RuleVerdict } from "./types";
 
@@ -37,6 +38,7 @@ export function evaluateRules(
     ...ctx,
     graphId: graph.id,
     graphVersion: graph.version,
+    graph,
   };
   const lookup = makeLookup(graph, ctx.removedIds);
   return rules.map((rule) => {
@@ -56,6 +58,8 @@ export function evaluateRules(
       evaluatedAt: ctx.now,
       provenance: rule.provenance,
       authorityLabel: rule.authorityLabel,
+      licenceState: rule.provenance.licenceState ?? DEFAULT_LICENCE_STATE,
+      sourceText: rule.provenance.sourceText ?? DEFAULT_SOURCE_TEXT,
     };
   });
 }

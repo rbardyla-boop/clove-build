@@ -1,6 +1,7 @@
 import type { Rule } from "@/crates/rule-engine/types";
 import { reachable } from "@/crates/system-graph/trace";
 import { findClashes } from "@/crates/clash/engine";
+import { findRoutingIssues } from "@/crates/routing/engine";
 import { buildPeiHouse } from "@/specimen/pei-part9-house";
 
 const DEMO = {
@@ -19,9 +20,9 @@ const SCIENCE = {
 
 export const DEMO_PACK_VERSION = "0.2.0";
 
-function graphFor(lookup: { has: (id: string) => boolean }) {
+function graphFor(ctx: { graph?: ReturnType<typeof buildPeiHouse> }, lookup?: { has: (id: string) => boolean }) {
   void lookup;
-  return buildPeiHouse();
+  return ctx.graph ?? buildPeiHouse();
 }
 
 export const demoRules: Rule[] = [
@@ -214,7 +215,7 @@ export const demoRules: Rule[] = [
     provenance: DEMO,
     authorityLabel: "Clove educational demonstration rule — topology, not an NPC clause",
     evaluate: (ctx) => {
-      const graph = graphFor({ has: () => true });
+      const graph = graphFor(ctx);
       const sys = graph.systems.find((s) => s.trade === "plumbing");
       if (!sys) {
         return {
@@ -253,7 +254,7 @@ export const demoRules: Rule[] = [
     provenance: DEMO,
     authorityLabel: "Clove educational demonstration rule — topology, not pipe sizing",
     evaluate: (ctx) => {
-      const graph = graphFor({ has: () => true });
+      const graph = graphFor(ctx);
       const sys = graph.systems.find((s) => s.trade === "plumbing")!;
       const coldSrc = "plumbing.supply.cold.service.001";
       const fixtures = ["plumbing.fixture.sink.bath", "plumbing.fixture.sink.kitchen", "plumbing.fixture.tub.bath", "plumbing.fixture.toilet.bath"];
@@ -305,7 +306,7 @@ export const demoRules: Rule[] = [
     provenance: DEMO,
     authorityLabel: "Clove educational demonstration rule — topology / state visualization, not a CEC inspection",
     evaluate: (ctx) => {
-      const graph = graphFor({ has: () => true });
+      const graph = graphFor(ctx);
       const sys = graph.systems.find((s) => s.trade === "electrical")!;
       const panel = "electrical.panel.main";
       const devices = [
@@ -364,7 +365,7 @@ export const demoRules: Rule[] = [
     provenance: DEMO,
     authorityLabel: "Clove educational demonstration rule — schematic airflow, not CFD",
     evaluate: (ctx) => {
-      const graph = graphFor({ has: () => true });
+      const graph = graphFor(ctx);
       const sys = graph.systems.find((s) => s.trade === "hvac")!;
       const ok = reachable(sys, "hvac.exhaust.bath.001", "hvac.exhaust.bath.outlet", ctx.removedIds, ["exhaust"]);
       if (ok) {
@@ -392,7 +393,7 @@ export const demoRules: Rule[] = [
     provenance: DEMO,
     authorityLabel: "Clove educational demonstration rule",
     evaluate: (ctx) => {
-      const graph = graphFor({ has: () => true });
+      const graph = graphFor(ctx);
       const sys = graph.systems.find((s) => s.trade === "hvac")!;
       const indoor = "hvac.heatpump.indoor.001";
       const terminals = ["hvac.terminal.front.001", "hvac.terminal.bath.001", "hvac.terminal.kitchen.001"];
@@ -504,7 +505,7 @@ export const demoRules: Rule[] = [
     provenance: DEMO,
     authorityLabel: "Project geometric fact — not a code violation",
     evaluate: (ctx) => {
-      const graph = graphFor({ has: () => true });
+      const graph = graphFor(ctx);
       const clashes = findClashes(graph, ctx.removedIds).filter((c) => c.kind === "GEOMETRIC_CLASH");
       if (clashes.length === 0) {
         return {
@@ -520,6 +521,68 @@ export const demoRules: Rule[] = [
         componentIds: [...new Set(clashes.flatMap((c) => [c.a, c.b]))].slice(0, 12),
         inputs: { clashes: clashes.length },
         reason: clashes[0]!.reason,
+      };
+    },
+  },
+  {
+    id: "CROSS-ROUTE-001",
+    title: "Distribution runs stay out of occupied living space",
+    packVersion: DEMO_PACK_VERSION,
+    domain: "cross-trade",
+    provenance: {
+      authority: "TRADE_PRACTICE" as const,
+      sourceIds: ["clove-demo-pack"],
+      wording: "executable-logic-only" as const,
+      verification: "demo-only" as const,
+    },
+    authorityLabel: "Trade practice of this specimen — not an NPC/CEC clause",
+    evaluate: (ctx) => {
+      const graph = graphFor(ctx);
+      const runs = findRoutingIssues(graph, ctx.removedIds).filter((c) => c.kind === "OCCUPIED_SPACE");
+      if (runs.length === 0) {
+        return {
+          verdict: "PASS",
+          componentIds: [],
+          inputs: { occupiedRuns: 0 },
+          reason: "No long supply, DWV, vent, cable or duct run was found through occupied living space.",
+          assumption: "This is a routing envelope check (above subfloor, below ceiling, not in a wall). It is not a licensed code table.",
+        };
+      }
+      return {
+        verdict: "FAIL",
+        componentIds: [...new Set(runs.map((r) => r.a))].slice(0, 12),
+        inputs: { occupiedRuns: runs.length },
+        reason: runs[0]!.reason,
+        assumption: "Water lines belong under the subfloor, in a wall, or in a ceiling/attic — not across the room.",
+      };
+    },
+  },
+  {
+    id: "CROSS-ROUTE-002",
+    title: "Service routes are connected, hosted, and spatially possible",
+    packVersion: DEMO_PACK_VERSION,
+    domain: "cross-trade",
+    provenance: DEMO,
+    authorityLabel: "Project geometric/system fact — not a code violation",
+    evaluate: (ctx) => {
+      const graph = graphFor(ctx);
+      const hits = findRoutingIssues(graph, ctx.removedIds).filter((c) =>
+        ["SOLID_HOST_COLLISION", "MISSING_PENETRATION", "DISCONNECTED_ROUTE", "FLOATING_COMPONENT", "IMPOSSIBLE_TRANSITION", "ROUTE_OUTSIDE_ALLOWED_ZONE"].includes(c.kind),
+      );
+      if (hits.length === 0) {
+        return {
+          verdict: "PASS",
+          componentIds: [],
+          inputs: { hits: 0 },
+          reason: "No disconnected, floating, unpenetrated, or spatially-impossible service routes were detected.",
+          assumption: "This is a routing engine result, not an NPC/CEC determination.",
+        };
+      }
+      return {
+        verdict: "FAIL",
+        componentIds: [...new Set(hits.flatMap((h) => [h.a, h.b]))].slice(0, 12),
+        inputs: { hits: hits.length, kind: hits[0]!.kind },
+        reason: hits[0]!.reason,
       };
     },
   },

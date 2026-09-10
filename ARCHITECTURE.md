@@ -22,6 +22,14 @@ src/crates/exchange           future IFC round-trip (empty)
 src/crates/ingest             plan intake → candidate (unimplemented)
 src/crates/observation        reality capture + evidence (unimplemented)
 src/crates/code-watch         future watch pipeline (interface)
+src/crates/shadow-pack        original predicates + citation pointers; official text never shipped
+src/crates/space-model        semantic building zones
+src/crates/routing            cross-trade spatial routing engine
+src/crates/search             semantic graph search
+src/crates/learn              predict → touch → observe lessons
+src/crates/source-precedence  statute > guidance > secondary
+src/crates/contrib            rule contribution envelope
+src/crates/machine-readable   future NRC structured import (unimplemented)
 src/crates/test-receipts      live + last-run receipt
 src/crates/ui                 overlay chrome
 src/specimen/pei-part9-house  parametric PEI demo house (all trades)

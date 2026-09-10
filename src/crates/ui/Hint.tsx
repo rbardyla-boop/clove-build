@@ -18,7 +18,8 @@ export function Hint() {
   if (!show) return null;
   return (
     <p className="lab-hint" role="note">
-      Drag to orbit · Scroll to zoom · Click any part
+      Drag to orbit · Scroll to zoom · Click any part · / to search
+      <span className="lab-hint-sub"> Educational laboratory. Not a permit determination.</span>
     </p>
   );
 }

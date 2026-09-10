@@ -33,7 +33,7 @@ export function CheckDrawer() {
     <section className="lab-check" aria-label="Build check">
       <header className="lab-check-head">
         <div>
-          <p className="lab-kicker">Whole-house check</p>
+          <p className="lab-kicker">Whole-house check · error finder</p>
           <h2 className={`lab-check-verdict lab-check-${headline.toLowerCase()}`}>{headline}</h2>
         </div>
         <button type="button" className="lab-btn" onClick={() => dispatch({ type: "CLEAR_CHECK" })}>
@@ -71,6 +71,9 @@ export function CheckDrawer() {
                     <p className="lab-mono">
                       {r.ruleId} · pack {r.rulePackVersion} · {r.provenance.authority} · {r.jurisdiction}
                     </p>
+                    <p className="lab-muted">
+                      Source text {r.sourceText.replaceAll("_", " ").toLowerCase()} · licence {r.licenceState.replaceAll("-", " ")}
+                    </p>
                     {r.componentIds.length ? (
                       <p className="lab-muted">
                         Affected: {r.componentIds.map((id) => graph.components[id]?.label ?? id).join(", ")}
@@ -78,16 +81,22 @@ export function CheckDrawer() {
                     ) : null}
                     <div className="lab-inspect-actions">
                       {r.componentIds[0] ? (
-                        <button
-                          type="button"
-                          className="lab-btn"
-                          onClick={() => {
-                            dispatch({ type: "SELECT_COMPONENT", id: r.componentIds[0]! });
-                            dispatch({ type: "FIT_SELECTED" });
-                          }}
-                        >
-                          Show in 3D
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            className="lab-btn lab-btn-accent"
+                            onClick={() => dispatch({ type: "SHOW_ME", ids: r.componentIds, reason: "why" })}
+                          >
+                            Show me why
+                          </button>
+                          <button
+                            type="button"
+                            className="lab-btn"
+                            onClick={() => dispatch({ type: "SHOW_ME", ids: r.componentIds, reason: "where" })}
+                          >
+                            Show me where
+                          </button>
+                        </>
                       ) : null}
                     </div>
                   </li>

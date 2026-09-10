@@ -5,6 +5,7 @@ import type { BuildingComponent, BuildingGraph } from "@/crates/building-graph/t
 import { isStageVisible } from "@/crates/construction-sequence/visibility";
 import { explodedCenter } from "@/crates/explode/engine";
 import type { LabSnapshot } from "@/crates/session/apply";
+import { workingGraph } from "@/crates/session/apply";
 import { tradeOf } from "@/crates/trades/infer";
 import { createLabMaterials, materialFor, type LabMaterials } from "./materials";
 
@@ -142,6 +143,23 @@ export class HouseLab {
     }
   }
 
+  private ensureMeshes(graph: BuildingGraph) {
+    for (const c of Object.values(graph.components)) {
+      if (c.geometry.kind !== "box" || this.meshes.has(c.id)) continue;
+      const mesh = new THREE.Mesh(this.unit, materialFor(c.material.family, this.mats));
+      mesh.userData.id = c.id;
+      mesh.matrixAutoUpdate = true;
+      this.applyCanonical(mesh, c);
+      this.root.add(mesh);
+      this.meshes.set(c.id, mesh);
+    }
+    for (const [id, mesh] of this.meshes) {
+      if (graph.components[id]) continue;
+      this.root.remove(mesh);
+      this.meshes.delete(id);
+    }
+  }
+
   private applyCanonical(mesh: THREE.Mesh, c: BuildingComponent) {
     const [x, y, z] = c.geometry.center;
     const [sx, sy, sz] = c.geometry.size;
@@ -153,6 +171,8 @@ export class HouseLab {
 
   sync(state: LabSnapshot) {
     this.snapshot = state;
+    const graph = workingGraph(state);
+    this.ensureMeshes(graph);
     const removed = new Set(state.removedIds);
     const hidden = new Set(state.hiddenIds);
     const isolated = state.isolatedIds ? new Set(state.isolatedIds) : null;
@@ -184,7 +204,7 @@ export class HouseLab {
     this.mats.flowAir.emissiveIntensity = pulse;
 
     for (const [id, mesh] of this.meshes) {
-      const c = state.graph.components[id];
+      const c = graph.components[id];
       if (!c) continue;
       const trade = tradeOf(c);
       const layer = state.tradeLayers[trade];
@@ -194,7 +214,7 @@ export class HouseLab {
       mesh.visible = visible;
       if (!visible) continue;
 
-      const [x, y, z] = explodedCenter(state.graph, c, state.explodeAmount, state.explodeScope);
+      const [x, y, z] = explodedCenter(graph, c, state.explodeAmount, state.explodeScope);
       mesh.position.set(x, y, z);
 
       const isIso = !isolated || isolated.has(id);
@@ -407,7 +427,26 @@ export class HouseLab {
 
 function flowMaterial(c: BuildingComponent, state: LabSnapshot, mats: LabMaterials) {
   const tags = c.tags ?? [];
-  if (state.flowMode === "control-layers") {
+  if (state.flowMode === "control-layers" || state.flowMode.startsWith("control-")) {
+    const want =
+      state.flowMode === "control-water"
+        ? "water-control"
+        : state.flowMode === "control-air"
+          ? "air-control"
+          : state.flowMode === "control-vapour"
+            ? "vapour-control"
+            : state.flowMode === "control-thermal"
+              ? "thermal-control"
+              : null;
+    if (want) {
+      if (tags.includes(want)) {
+        if (want === "water-control") return mats.layerWater;
+        if (want === "air-control") return mats.layerAir;
+        if (want === "vapour-control") return mats.layerVapour;
+        return mats.layerThermal;
+      }
+      return mats.ghost;
+    }
     if (tags.includes("water-control")) return mats.layerWater;
     if (tags.includes("air-control")) return mats.layerAir;
     if (tags.includes("vapour-control")) return mats.layerVapour;

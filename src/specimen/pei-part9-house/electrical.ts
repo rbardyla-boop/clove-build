@@ -627,12 +627,22 @@ export function addElectrical(reg: Registry) {
   cable(
     reg,
     "electrical.cable.receptacles.001",
-    "Receptacle branch to front wall",
+    "Receptacle branch in joist bay",
     [panelX, joistY, 2.4],
+    [1.15, joistY, halfW - 0.38],
+    ["electrical"],
+    "General receptacle circuit in the floor cavity.",
+    "Stay under the subfloor until the teaching wall.",
+  );
+  cable(
+    reg,
+    "electrical.cable.receptacles.002",
+    "Receptacle rise at front wall",
+    [1.15, joistY, halfW - 0.38],
     [1.15, deviceY, halfW - 0.18],
     ["electrical"],
-    "General receptacle circuit.",
-    "Connect a front-wall receptacle to its breaker.",
+    "Rise in the front-wall cavity to the receptacle.",
+    "The only above-floor run is the wall riser, not a diagonal through the room.",
     { explodeGroup: "assembly.wall.front", explodeVector: [0, 0.2, 1.8], local: [0, 0.05, 0.3], parentId: "assembly.wall.front" },
   );
 
@@ -699,7 +709,8 @@ export const ELECTRICAL_CONNECTIONS: SystemConnection[] = [
   { id: "el.lt-kit-sw", from: "electrical.cable.lighting.001", to: "electrical.device.switch.kitchen.001", kind: "circuit" },
   { id: "el.lt-kit-lum", from: "electrical.device.switch.kitchen.001", to: "electrical.device.luminaire.kitchen.001", kind: "circuit" },
   { id: "el.rec-c", from: "electrical.breaker.receptacles", to: "electrical.cable.receptacles.001", kind: "circuit" },
-  { id: "el.rec-d", from: "electrical.cable.receptacles.001", to: "electrical.device.receptacle.front.001", kind: "circuit" },
+  { id: "el.rec-c2", from: "electrical.cable.receptacles.001", to: "electrical.cable.receptacles.002", kind: "circuit" },
+  { id: "el.rec-d", from: "electrical.cable.receptacles.002", to: "electrical.device.receptacle.front.001", kind: "circuit" },
   { id: "el.mech-c", from: "electrical.breaker.mechanical", to: "electrical.cable.mechanical.001", kind: "circuit" },
   { id: "el.mech-wh", from: "electrical.cable.mechanical.001", to: "electrical.device.waterheater.load", kind: "circuit" },
   { id: "el.riser", from: "electrical.breaker.kitchen", to: "electrical.cable.riser.001", kind: "circuit" },

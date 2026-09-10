@@ -24,6 +24,9 @@ function overlay(s: LabSnapshot) {
     flowMode: s.flowMode,
     hideFinish: s.hideFinish,
     trace: s.trace,
+    faultIds: s.faultIds,
+    searchQuery: s.searchQuery,
+    viewDepth: s.viewDepth,
   };
 }
 
@@ -45,6 +48,8 @@ describe("reset invariant", () => {
     s = applyCommand(s, { type: "SET_CONSTRUCTION_STAGE", stage: 8 });
     s = applyCommand(s, { type: "SET_XRAY", enabled: true });
     s = applyCommand(s, { type: "SET_HIDE_FINISH", enabled: true });
+    s = applyCommand(s, { type: "SET_FAULT", faultId: "fault.midroom-pipe", active: true });
+    s = applyCommand(s, { type: "SET_SEARCH", query: "header" });
     s = applyCommand(s, { type: "RUN_CHECK" });
     s = applyCommand(s, { type: "RESTORE_COMPONENT", id: "plumbing.dwv.trap.lav.001" });
     s = applyCommand(s, { type: "RESET_SPECIMEN" });

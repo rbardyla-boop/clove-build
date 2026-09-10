@@ -1,5 +1,5 @@
-import type { AuthorityCategory, TradeId } from "@/crates/building-graph/types";
-import type { RuleProvenance } from "@/crates/provenance/types";
+import type { AuthorityCategory, BuildingGraph, TradeId } from "@/crates/building-graph/types";
+import type { ContentLicenceState, RuleProvenance, SourceTextPolicy } from "@/crates/provenance/types";
 
 export type RuleVerdict = "PASS" | "FAIL" | "MISSING_INFORMATION" | "UNCERTAIN";
 
@@ -20,6 +20,8 @@ export type RuleEvaluation = {
   evaluatedAt: string;
   provenance: RuleProvenance;
   authorityLabel: string;
+  licenceState: ContentLicenceState;
+  sourceText: SourceTextPolicy;
 };
 
 /**
@@ -36,6 +38,7 @@ export type RuleContext = {
   removedIds: readonly string[];
   hiddenIds: readonly string[];
   now: string;
+  graph?: BuildingGraph;
 };
 
 export type Rule = {
@@ -45,7 +48,7 @@ export type Rule = {
   domain: RuleDomain;
   provenance: RuleProvenance;
   authorityLabel: string;
-  evaluate: (ctx: RuleContext, lookup: RuleLookup) => Omit<RuleEvaluation, "evaluatedAt" | "jurisdiction" | "rulePackVersion" | "ruleId" | "title" | "provenance" | "authorityLabel" | "sourceRefs" | "domain"> & {
+  evaluate: (ctx: RuleContext, lookup: RuleLookup) => Omit<RuleEvaluation, "evaluatedAt" | "jurisdiction" | "rulePackVersion" | "ruleId" | "title" | "provenance" | "authorityLabel" | "sourceRefs" | "domain" | "licenceState" | "sourceText"> & {
     sourceRefs?: string[];
   };
 };

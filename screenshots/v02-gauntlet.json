@@ -5,7 +5,7 @@
     {
       "id": "A",
       "ok": true,
-      "note": "components=564"
+      "note": "components=570"
     },
     {
       "id": "B1",
@@ -40,12 +40,12 @@
     {
       "id": "G",
       "ok": true,
-      "note": "ids=31"
+      "note": "ids=34"
     },
     {
       "id": "H",
       "ok": true,
-      "note": "ids=34"
+      "note": "ids=35"
     },
     {
       "id": "I",
@@ -75,7 +75,7 @@
     {
       "id": "N",
       "ok": true,
-      "note": "fail=4 incomplete=7 rules=19"
+      "note": "fail=4 incomplete=7 rules=21"
     },
     {
       "id": "O",

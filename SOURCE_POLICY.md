@@ -17,4 +17,19 @@ If a needed fact is not verified, the engine returns MISSING_INFORMATION or UNCE
 
 Adoption of a code *family* (NBC 2020, NPC 2020, CEC 2024) is not a licence to invent clause-level predicates. NECB 2020 adoption in PEI is not assumed as the energy path of this Part 9 house.
 
+## Shadow rule pack
+
+Clove ships **original** explanations and executable predicates, plus a citation pointer (family / edition / part / provision id when known). It does **not** ship NBC, NPC, NECB, CEC, or B149 wording.
+
+Each evaluation is stamped:
+
+- `sourceText: NOT_DISTRIBUTED`
+- `licenceState: content-rights-not-granted`
+
+until a real licence exists.
+
+A local folder `private-reference/` (gitignored) may hold PDFs a person already has a right to possess. The engine never reads them. That adapter is so we do not have to redesign the product when NRC/CSA later grant machine-readable access.
+
+See `src/crates/shadow-pack/`.
+
 See `research/source-manifest.json` and `src/rule-packs/pei/pack.ts`.

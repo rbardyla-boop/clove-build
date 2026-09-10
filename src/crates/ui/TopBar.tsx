@@ -1,5 +1,6 @@
 import { selectJurisdiction } from "@/crates/jurisdiction/select";
 import { useLab } from "@/crates/session/store";
+import { SearchPanel } from "./SearchPanel";
 
 export function TopBar() {
   const graph = useLab((s) => s.graph);
@@ -14,21 +15,22 @@ export function TopBar() {
         <span className="lab-product">Build Lab</span>
       </div>
       <div className="lab-context" title={pack.regulatoryStatus}>
-        <span>PEI · Prototype</span>
+        <span>Prince Edward Island</span>
+        <span className="lab-dot" aria-hidden="true" />
+        <span>Detached house</span>
         <span className="lab-dot" aria-hidden="true" />
         <span>{nbc ? `NBC ${nbc.edition}` : pack.codeFamilyLabel}</span>
-        <span className="lab-dot" aria-hidden="true" />
-        <span>{graph.projectDate}</span>
       </div>
+      <SearchPanel />
       <div className="lab-top-actions">
         <button type="button" className="lab-btn" onClick={() => dispatch({ type: "FIT_HOUSE" })}>
           Fit
         </button>
         <button type="button" className="lab-btn" onClick={() => dispatch({ type: "TOGGLE_RYAN_TEST" })}>
-          Ryan Trades Test
+          Ryan Test
         </button>
         <button type="button" className="lab-btn" onClick={() => dispatch({ type: "TOGGLE_RECEIPT" })}>
-          Build Receipt
+          Receipt
         </button>
         <button type="button" className="lab-btn" onClick={() => dispatch({ type: "TOGGLE_DIAG" })} aria-label="Diagnostics">
           Diag

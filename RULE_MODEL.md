@@ -30,8 +30,12 @@ v0.2 additional rules:
 | THERM-AIR-001 | FAIL if front-wall air-control layer is removed | BUILDING_SCIENCE |
 | FINISH-SEQUENCE-001 | documents PROJECT_CONSTRUCTION_SEQUENCE | PROJECT_MODEL_ASSUMPTION |
 | CROSS-CLASH-001 | FAIL on unregistered service/structure AABB clash | EDUCATIONAL_DEMO_RULE |
+| CROSS-ROUTE-001 | FAIL if a long distribution run occupies living space | TRADE_PRACTICE |
+| CROSS-ROUTE-002 | FAIL on disconnected/floating/unpenetrated/impossible routes | EDUCATIONAL_DEMO_RULE |
 | PEI-ENERGY-PATH-001 | MISSING_INFORMATION — NECB not assumed for this Part 9 house | OFFICIAL_REGULATION metadata |
 | PEI-NPC2025-001 | UNCERTAIN — NPC 2025 publication ≠ PEI adoption | OFFICIAL_REGULATION metadata |
+
+v0.3 additions: space-model zones, route segments, SHOW ME WHY/WHERE, semantic search, Code Watch (metadata only, never auto-activates), shadow contributions. Official NBC/NPC/CEC paragraphs are never distributed.
 
 Demo rules must never be labelled as law. The check drawer prints the authority category on every result, grouped by domain.
 

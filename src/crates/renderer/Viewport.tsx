@@ -45,6 +45,9 @@ export function Viewport() {
             graphId: s.graph.id,
             componentCount: Object.keys(s.graph.components).length,
             systemCount: s.graph.systems.length,
+            faultIds: s.faultIds,
+            searchQuery: s.searchQuery,
+            viewDepth: s.viewDepth,
           };
         },
         fps: lab.fps,

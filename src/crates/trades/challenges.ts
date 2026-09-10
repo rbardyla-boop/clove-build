@@ -112,6 +112,20 @@ export const STRUCTURAL_CHALLENGE: LearningChallenge = {
   criticalIds: WINDOW_CHALLENGE.criticalIds,
 };
 
+export const ROUTE_CHALLENGE: LearningChallenge = {
+  id: "challenge.cross.occupied-route",
+  trade: "cross-trade",
+  title: "A pipe through the room",
+  prompt:
+    "An overlay fault places a supply run through occupied living space. Run CHECK. This is the error finder — not a mutation of the planned house. Reset clears it.",
+  targetAssembly: "assembly.plumbing",
+  focusId: "fault.midroom-pipe",
+  hintAfterCheck: "CROSS-ROUTE-001 should FAIL on the overlay pipe. The canonical graph hash must not change.",
+  checkHintRuleId: "CROSS-ROUTE-001",
+  removableHintIds: [],
+  criticalIds: ["plumbing.supply.cold.kitchen.001"],
+};
+
 export const TRADE_CHALLENGES: LearningChallenge[] = [
   STRUCTURAL_CHALLENGE,
   ENVELOPE_CHALLENGE,
@@ -120,6 +134,7 @@ export const TRADE_CHALLENGES: LearningChallenge[] = [
   HVAC_CHALLENGE,
   THERMAL_CHALLENGE,
   CROSS_CHALLENGE,
+  ROUTE_CHALLENGE,
 ];
 
 export function challengeById(id: string | null | undefined): LearningChallenge | undefined {

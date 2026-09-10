@@ -1,6 +1,6 @@
 import type { BuildingComponent, BuildingGraph } from "@/crates/building-graph/types";
 
-export type ClashKind = "GEOMETRIC_CLASH" | "DISCONNECTED_SYSTEM" | "MISSING_PENETRATION";
+export type ClashKind = "GEOMETRIC_CLASH" | "DISCONNECTED_SYSTEM" | "MISSING_PENETRATION" | "OCCUPIED_SPACE";
 
 export type ClashFinding = {
   id: string;
@@ -21,6 +21,11 @@ const SOLID_HOST = new Set([
 ]);
 
 const SERVICE = new Set(["pipe-supply", "pipe-dwv", "pipe-vent", "cable", "duct", "refrigerant-line"]);
+
+const LONG_RUN_M = 1.4;
+const LIVING_ABOVE_FLOOR_M = 0.08;
+const LIVING_BELOW_CEILING_M = 0.1;
+const WALL_CAVITY_M = 0.35;
 
 function aabb(c: BuildingComponent): { min: [number, number, number]; max: [number, number, number] } | null {
   if (c.geometry.kind !== "box") return null;
@@ -45,9 +50,113 @@ function volumeOf(c: BuildingComponent): number {
   return Math.abs(sx * sy * sz);
 }
 
+function isVerticalRiser(c: BuildingComponent): boolean {
+  const [sx, sy, sz] = c.geometry.size;
+  const horiz = Math.max(sx, sz);
+  return sy >= 0.4 && sy >= horiz * 1.5;
+}
+
+function isWallHosted(c: BuildingComponent): boolean {
+  const keys = [c.parentId, c.assembly?.explodeGroup];
+  return keys.some((k) => typeof k === "string" && k.includes("assembly.wall"));
+}
+
+function livingEnvelope(comps: BuildingComponent[]): {
+  yMin: number;
+  yMax: number;
+  xMin: number;
+  xMax: number;
+  zMin: number;
+  zMax: number;
+} | null {
+  const floors = comps.filter((c) => c.type === "subfloor");
+  const plates = comps.filter((c) => c.type === "top-plate");
+  if (floors.length === 0 || plates.length === 0) return null;
+  let xMin = Infinity;
+  let xMax = -Infinity;
+  let zMin = Infinity;
+  let zMax = -Infinity;
+  let floorTop = -Infinity;
+  let ceiling = Infinity;
+  for (const f of floors) {
+    const box = aabb(f);
+    if (!box) continue;
+    xMin = Math.min(xMin, box.min[0]);
+    xMax = Math.max(xMax, box.max[0]);
+    zMin = Math.min(zMin, box.min[2]);
+    zMax = Math.max(zMax, box.max[2]);
+    floorTop = Math.max(floorTop, box.max[1]);
+  }
+  for (const p of plates) {
+    const box = aabb(p);
+    if (!box) continue;
+    ceiling = Math.min(ceiling, box.max[1]);
+  }
+  if (!Number.isFinite(floorTop) || !Number.isFinite(ceiling) || ceiling <= floorTop) return null;
+  return {
+    yMin: floorTop + LIVING_ABOVE_FLOOR_M,
+    yMax: ceiling - LIVING_BELOW_CEILING_M,
+    xMin,
+    xMax,
+    zMin,
+    zMax,
+  };
+}
+
+function nearExteriorWall(
+  c: BuildingComponent,
+  env: NonNullable<ReturnType<typeof livingEnvelope>>,
+): boolean {
+  const [x, , z] = c.geometry.center;
+  const [sx, , sz] = c.geometry.size;
+  const thinX = sx <= 0.2;
+  const thinZ = sz <= 0.2;
+  if (thinX && (x - env.xMin <= WALL_CAVITY_M || env.xMax - x <= WALL_CAVITY_M)) return true;
+  if (thinZ && (z - env.zMin <= WALL_CAVITY_M || env.zMax - z <= WALL_CAVITY_M)) return true;
+  return false;
+}
+
+/**
+ * Long distribution runs whose centreline sits in the occupied living volume
+ * (above the subfloor, below the ceiling, not in a wall cavity).
+ * Project geometry fact — not an NPC/CEC clause.
+ */
+export function findOccupiedSpaceRuns(
+  graph: BuildingGraph,
+  removedIds: readonly string[] = [],
+): ClashFinding[] {
+  const removed = new Set(removedIds);
+  const comps = Object.values(graph.components).filter(
+    (c) => c.geometry.kind === "box" && !removed.has(c.id) && !c.geometry.rotation,
+  );
+  const env = livingEnvelope(comps);
+  if (!env) return [];
+  const findings: ClashFinding[] = [];
+  for (const svc of comps) {
+    if (!SERVICE.has(svc.type)) continue;
+    if (isVerticalRiser(svc)) continue;
+    if (isWallHosted(svc)) continue;
+    const [sx, , sz] = svc.geometry.size;
+    if (Math.max(sx, sz) < LONG_RUN_M) continue;
+    const [x, y, z] = svc.geometry.center;
+    if (y <= env.yMin || y >= env.yMax) continue;
+    if (x < env.xMin || x > env.xMax || z < env.zMin || z > env.zMax) continue;
+    if (nearExteriorWall(svc, env)) continue;
+    findings.push({
+      id: `occupied.${svc.id}`,
+      kind: "OCCUPIED_SPACE",
+      a: svc.id,
+      b: "living-volume",
+      reason: `${svc.label} runs through occupied living space instead of a floor cavity, wall cavity, or ceiling/attic.`,
+    });
+  }
+  return findings;
+}
+
 /**
  * Deterministic geometric clashes. These are project facts, not code violations.
  * Penetrations registered on the graph are treated as intended openings.
+ * Occupied-space findings are routing errors, not AABB overlaps with a host.
  */
 export function findClashes(graph: BuildingGraph, removedIds: readonly string[] = []): ClashFinding[] {
   const removed = new Set(removedIds);
@@ -136,5 +245,6 @@ export function findClashes(graph: BuildingGraph, removedIds: readonly string[] 
     }
   }
 
+  findings.push(...findOccupiedSpaceRuns(graph, removedIds));
   return findings;
 }

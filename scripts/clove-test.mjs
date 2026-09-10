@@ -22,6 +22,12 @@ const TEST_FILES = [
   "src/crates/session/chaos.test.ts",
   "src/crates/session/isolation.test.ts",
   "src/crates/rule-engine/authority.test.ts",
+  "src/crates/shadow-pack/shadow.test.ts",
+  "src/crates/space-model/space.test.ts",
+  "src/crates/routing/routing.test.ts",
+  "src/crates/search/search.test.ts",
+  "src/crates/code-watch/watch.test.ts",
+  "src/crates/contrib/contrib.test.ts",
 ];
 
 const result = spawnSync(

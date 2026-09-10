@@ -14,7 +14,13 @@ export type FlowMode =
   | "airflow-supply"
   | "airflow-return"
   | "airflow-exhaust"
-  | "control-layers";
+  | "control-layers"
+  | "control-water"
+  | "control-air"
+  | "control-vapour"
+  | "control-thermal";
+
+export type ViewDepth = "learn" | "technical";
 
 export type TraceState = {
   trade: TraceKind;
@@ -51,7 +57,12 @@ export type Command =
   | { type: "SET_TRADE_LAYER"; trade: TradeId; state: TradeLayerState }
   | { type: "SET_FLOW_MODE"; mode: FlowMode }
   | { type: "SET_HIDE_FINISH"; enabled: boolean }
-  | { type: "TRACE_FROM"; id: string | null }
-  | { type: "CLEAR_TRACE" };
+  | { type: "TRACE_FROM"; id: string | null; kinds?: string[] }
+  | { type: "CLEAR_TRACE" }
+  | { type: "SET_VIEW_DEPTH"; depth: ViewDepth }
+  | { type: "SET_SEARCH"; query: string }
+  | { type: "SHOW_ME"; ids: string[]; reason?: "why" | "where" }
+  | { type: "SET_FAULT"; faultId: string; active: boolean }
+  | { type: "SET_LESSON"; id: string | null };
 
 export type LabEvent = Command & { at: number; seq: number };
