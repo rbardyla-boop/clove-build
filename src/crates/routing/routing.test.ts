@@ -76,6 +76,36 @@ describe("routing engine", () => {
     assert.deepEqual(hits, []);
   });
 
+  it("flags a duct filling the joist cavity", () => {
+    const clone = structuredClone(graph);
+    const t = clone.components["hvac.duct.supply.main"]!;
+    clone.components["duct.in.joists"] = {
+      ...t,
+      id: "duct.in.joists",
+      label: "Oversized joist duct",
+      geometry: { kind: "box", center: [0, (Y.sillTop + Y.floorTop) / 2, 1.2], size: [2.4, 0.2, 0.2] },
+      assembly: { ...t.assembly, explodeGroup: "assembly.hvac" },
+    };
+    const hits = findRoutingIssues(clone).filter((h) => h.kind === "IMPOSSIBLE_TRANSITION");
+    assert.ok(hits.some((h) => h.a === "duct.in.joists"), JSON.stringify(hits));
+  });
+
+  it("flags a pipe through a window unit", () => {
+    const clone = structuredClone(graph);
+    const t = clone.components["plumbing.vent.kitchen.rise"]!;
+    const win = clone.components["envelope.window.front.002"]!;
+    clone.components["pipe.through.window"] = {
+      ...t,
+      id: "pipe.through.window",
+      label: "Vent through glass",
+      geometry: { kind: "box", center: win.geometry.center, size: [0.05, 1.4, 0.05] },
+      assembly: { ...t.assembly, explodeGroup: "assembly.plumbing" },
+      parentId: "assembly.plumbing",
+    };
+    const hits = findRoutingIssues(clone).filter((h) => h.kind === "SOLID_HOST_COLLISION");
+    assert.ok(hits.some((h) => h.a === "pipe.through.window"), JSON.stringify(hits));
+  });
+
   it("exposed mechanical-room equipment is not an occupied-space fail", () => {
     const hits = findRoutingIssues(graph).filter(
       (h) => h.kind === "OCCUPIED_SPACE" && (h.a.includes("waterheater") || h.a.includes("heatpump.indoor")),

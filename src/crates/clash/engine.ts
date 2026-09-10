@@ -20,6 +20,8 @@ const SOLID_HOST = new Set([
   "foundation-wall",
 ]);
 
+const OPENING_HOST = new Set(["window-unit", "door-unit"]);
+
 const SERVICE = new Set(["pipe-supply", "pipe-dwv", "pipe-vent", "cable", "duct", "refrigerant-line"]);
 
 const LONG_RUN_M = 1.4;
@@ -174,6 +176,7 @@ export function findClashes(graph: BuildingGraph, removedIds: readonly string[] 
 
   const hosts = comps.filter((c) => SOLID_HOST.has(c.type));
   const services = comps.filter((c) => SERVICE.has(c.type));
+  const openings = comps.filter((c) => OPENING_HOST.has(c.type));
 
   for (const svc of services) {
     const sa = aabb(svc);
@@ -194,6 +197,22 @@ export function findClashes(graph: BuildingGraph, removedIds: readonly string[] 
         b: host.id,
         reason: `${svc.label} occupies volume of ${host.label} without a modelled penetration.`,
       });
+    }
+    // Window/door units are thin; volume-fraction vs studs would miss a pipe through glass.
+    for (const opening of openings) {
+      if (intended.has(`${opening.id}|${svc.id}`)) continue;
+      const oa = aabb(opening);
+      if (!oa) continue;
+      const vol = overlapVolume(sa, oa);
+      if (vol > 5e-6) {
+        findings.push({
+          id: `clash.${svc.id}.${opening.id}`,
+          kind: "GEOMETRIC_CLASH",
+          a: svc.id,
+          b: opening.id,
+          reason: `${svc.label} occupies the ${opening.label} opening — a pipe or duct does not go through the window unit.`,
+        });
+      }
     }
   }
 

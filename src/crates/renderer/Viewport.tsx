@@ -54,6 +54,7 @@ export function Viewport() {
         drawCalls: lab.drawCalls,
         dispatch: (cmd: Parameters<typeof state.dispatch>[0]) => useLab.getState().dispatch(cmd),
         explodeSelection: () => useLab.getState().explodeSelection(),
+        setView: (pos: [number, number, number], target: [number, number, number]) => lab.setView(pos, target),
       };
     };
     probe();

@@ -71,7 +71,9 @@ export function classifyComponent(graph: BuildingGraph, c: BuildingComponent): S
   if (nearWall(c, env) && y >= env.floorTop - 0.05 && y <= env.wallTop + 0.05) {
     return isVertical(c) ? "SHAFT" : "WALL_CAVITY";
   }
-  if (y < env.floorTop - 0.02 && y >= env.sillTop - 0.25) return "FLOOR_CAVITY";
+  // Joist depth only — members hung below the sill are under-floor, not in the joists.
+  if (y < env.floorTop - 0.02 && y >= env.sillTop - 0.02) return "FLOOR_CAVITY";
+  if (y < env.sillTop - 0.02 && y >= env.sillTop - 0.4) return "UNDER_FLOOR";
   if (y < env.sillTop - 0.02 && y >= env.grade - 0.05) return "MECHANICAL_SPACE";
   if (y < env.floorTop && y >= env.grade - 0.05) return "UNDER_FLOOR";
   if (y > env.floorTop + 0.06 && y < env.wallTop - 0.08) return "OCCUPIED_ROOM";

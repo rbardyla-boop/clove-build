@@ -1,3 +1,4 @@
+import { LUMBER } from "@/crates/geometry/lumber";
 import { addAssembly, addBox, MAT } from "./helper";
 import { P, Y, halfL, halfW } from "./params";
 import type { Registry } from "./registry";
@@ -114,21 +115,65 @@ export function addInterior(reg: Registry) {
   });
 
   addBox(reg, {
-    id: "assembly.wall.kitchen.stud.00",
-    type: "common-stud",
-    label: "Kitchen return stud",
+    id: "assembly.wall.kitchen.plate.bottom",
+    type: "bottom-plate",
+    label: "Kitchen return bottom plate",
     parentId: "assembly.wall.kitchen",
     trade: "structure",
-    center: [2.4, studY, 1.55],
-    size: [3.4, studH, P.stud.t],
+    center: [2.4, Y.floorTop + P.plate / 2, 1.55],
+    size: [3.6, P.plate, LUMBER["2x4"].d],
     material: MAT.wood,
     stage: 8,
     explodeGroup: "assembly.wall.kitchen",
-    explodeVector: [0, 0.3, -1.5],
-    localExplodeVector: [0, 0, -0.25],
+    explodeVector: [0, 0.2, -1.5],
+    localExplodeVector: [0, -0.15, 0],
     tags: ["wall", "kitchen"],
-    short: "Simplified kitchen return framing (one panel, not every stud).",
-    purpose: "Hold kitchen devices without duplicating the exterior wall.",
+    short: "Bottom plate of the kitchen return wall.",
+    purpose: "Anchor the kitchen partition to the floor deck.",
     dependencies: ["subfloor.0"],
+  });
+
+  const k4 = LUMBER["2x4"];
+  let ks = 0;
+  for (let x = 2.4 - 1.7; x <= 2.4 + 1.7 + 1e-9; x += P.studOc) {
+    const id = `assembly.wall.kitchen.stud.${String(ks).padStart(2, "0")}`;
+    addBox(reg, {
+      id,
+      type: "common-stud",
+      label: `Kitchen return stud ${ks + 1}`,
+      parentId: "assembly.wall.kitchen",
+      trade: "structure",
+      center: [x, studY, 1.55],
+      size: [k4.t, studH, k4.d],
+      material: MAT.wood,
+      stage: 8,
+      explodeGroup: "assembly.wall.kitchen",
+      explodeVector: [0, 0.3, -1.5],
+      localExplodeVector: [(x - 2.4) * 0.15, 0, -0.25],
+      tags: ["wall", "kitchen"],
+      short: "A 2×4 stud in the kitchen return wall.",
+      purpose: "Frame the kitchen partition at 16″ o.c. — not a single lumber slab.",
+      dependencies: ["assembly.wall.kitchen.plate.bottom"],
+    });
+    ks += 1;
+  }
+
+  addBox(reg, {
+    id: "assembly.wall.kitchen.plate.top",
+    type: "top-plate",
+    label: "Kitchen return top plate",
+    parentId: "assembly.wall.kitchen",
+    trade: "structure",
+    center: [2.4, Y.wallTop - P.plate, 1.55],
+    size: [3.6, P.plate * 2, k4.d],
+    material: MAT.wood,
+    stage: 8,
+    explodeGroup: "assembly.wall.kitchen",
+    explodeVector: [0, 0.5, -1.5],
+    localExplodeVector: [0, 0.25, 0],
+    tags: ["wall", "kitchen"],
+    short: "Double top plate of the kitchen return.",
+    purpose: "Tie the kitchen partition to the ceiling plane.",
+    dependencies: ["assembly.wall.kitchen.stud.00"],
   });
 }

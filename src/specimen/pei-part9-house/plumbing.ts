@@ -1,6 +1,6 @@
 import type { MaterialDescriptor, SystemConnection, Vec3 } from "@/crates/building-graph/types";
 import { addAssembly, addBox, MAT, PROV_EDU, segmentBox } from "./helper";
-import { P, Y, halfL } from "./params";
+import { P, Y, halfL, halfW } from "./params";
 import type { Registry } from "./registry";
 
 const COLD = 0.022;
@@ -69,18 +69,22 @@ export function addPlumbing(reg: Registry) {
   const coldZ = -1.18;
   const hotZ = -1.52;
   const slabY = Y.footingTop + 0.12;
-  const floorY = Y.floorTop - 0.12;
   const fixtureY = Y.floorTop + 0.42;
   const ventY = Y.wallTop + 0.35;
   const roofY = Y.ridgeY + 0.15;
   // Hung below the joists, in the basement, under the subfloor — not through living space.
   const underColdY = Y.sillTop - 0.05;
   const underHotY = Y.sillTop - 0.13;
+  const underDwvY = Y.sillTop - 0.07;
   const kitX = 2.75;
   const kitZ = 3.12;
   const kitXHot = 2.68;
   const kitZHot = 3.04;
   const kitSinkY = Y.floorTop + 0.88;
+  // W2 is centred at x=2.75, 1.22 m wide (2.14–3.36). Vent the kitchen in the
+  // king-stud bay east of that opening — not through the glass.
+  const kitVentX = 3.48;
+  const kitWallZ = halfW - 0.18;
 
   addBox(reg, {
     id: "plumbing.waterheater.001",
@@ -290,22 +294,36 @@ export function addPlumbing(reg: Registry) {
     ["plumbing", "dwv", "stack", "bath"], "The vertical soil and waste stack in the wet wall.",
     "Collect fixture wastes and continue as a vent. Routing is this specimen's topology.",
     { explodeGroup: "assembly.wall.bath", explodeVector: [1.8, 0.3, 0], local: [0.65, 0, 0], parentId: "assembly.wall.bath" });
+  pipe(reg, "plumbing.dwv.branch.toilet.drop", "Toilet drain drop", "pipe-dwv",
+    [-3.55, Y.floorTop + 0.05, -2.15], [-3.55, underDwvY, -2.15], BRANCH, MAT.abs, 15,
+    ["plumbing", "dwv", "bath"], "Toilet waste dropping through the floor.",
+    "Leave the fixture through the floor, then travel under the joists.");
   pipe(reg, "plumbing.dwv.branch.toilet.001", "Toilet drain branch", "pipe-dwv",
-    [-3.55, floorY, -2.15], [stackX, floorY, stackZ], BRANCH, MAT.abs, 15,
-    ["plumbing", "dwv", "bath"], "Toilet waste to the stack.", "Connect the soil fixture to the stack.");
+    [-3.55, underDwvY, -2.15], [stackX, underDwvY, stackZ], BRANCH, MAT.abs, 15,
+    ["plumbing", "dwv", "bath"], "Toilet waste hung under the joists.", "Connect the soil fixture to the stack below the floor.");
   pipe(reg, "plumbing.dwv.branch.lav.001", "Lavatory drain branch", "pipe-dwv",
     [-3.2, Y.floorTop + 0.4, -0.75], [stackX, Y.floorTop + 0.4, stackZ], BRANCH, MAT.abs, 15,
     ["plumbing", "dwv", "bath"], "Lavatory waste to the stack.", "Connect the lavatory trap to the stack.",
     { explodeGroup: "assembly.wall.bath", explodeVector: [1.4, 0.2, 0], local: [0.4, 0, 0], parentId: "assembly.wall.bath" });
+  pipe(reg, "plumbing.dwv.branch.tub.drop", "Tub drain drop", "pipe-dwv",
+    [-2.85, Y.floorTop + 0.05, 0.55], [-2.85, underDwvY, 0.55], BRANCH, MAT.abs, 15,
+    ["plumbing", "dwv", "bath"], "Tub waste dropping through the floor.",
+    "Leave the tub through the floor, then travel under the joists.");
   pipe(reg, "plumbing.dwv.branch.tub.001", "Tub drain branch", "pipe-dwv",
-    [-2.85, floorY, 0.55], [stackX, floorY, stackZ], BRANCH, MAT.abs, 15,
-    ["plumbing", "dwv", "bath"], "Tub waste to the stack.", "Connect the tub trap to the stack.");
+    [-2.85, underDwvY, 0.55], [stackX, underDwvY, stackZ], BRANCH, MAT.abs, 15,
+    ["plumbing", "dwv", "bath"], "Tub waste hung under the joists.", "Connect the tub trap to the stack below the floor.");
+  pipe(reg, "plumbing.dwv.branch.kitchen.drop", "Kitchen drain drop through floor", "pipe-dwv",
+    [2.75, Y.floorTop + 0.5, 3.05], [2.75, underDwvY, 3.05], BRANCH, MAT.abs, 15,
+    ["plumbing", "dwv", "kitchen"], "Kitchen waste dropping through the subfloor at the sink.",
+    "Leave the cabinet through the floor, then travel under the joists.");
   pipe(reg, "plumbing.dwv.branch.kitchen.001", "Kitchen drain branch", "pipe-dwv",
-    [2.75, floorY, 3.05], [stackX, floorY, 3.05], BRANCH, MAT.abs, 15,
-    ["plumbing", "dwv", "kitchen"], "Kitchen waste across the floor bays.", "Carry kitchen waste to the stack wall.");
+    [2.75, underDwvY, 3.05], [stackX, underDwvY, 3.05], BRANCH, MAT.abs, 15,
+    ["plumbing", "dwv", "kitchen"], "Kitchen waste hung under the joists, not bored through them.",
+    "Carry kitchen waste below the floor structure to the stack wall.");
   pipe(reg, "plumbing.dwv.branch.kitchen.002", "Kitchen drain to stack", "pipe-dwv",
-    [stackX, floorY, 3.05], [stackX, floorY, stackZ], BRANCH, MAT.abs, 15,
-    ["plumbing", "dwv", "kitchen"], "Kitchen waste turning down the wet wall.", "Join kitchen waste to the stack.");
+    [stackX, underDwvY, 3.05], [stackX, underDwvY, stackZ], BRANCH, MAT.abs, 15,
+    ["plumbing", "dwv", "kitchen"], "Kitchen waste turning along the wet wall under the floor.",
+    "Join kitchen waste to the stack from below the joists.");
 
   pipe(reg, "plumbing.dwv.building-drain.001", "Building drain", "pipe-dwv",
     [stackX, slabY, stackZ], [-halfL - 0.35, slabY, stackZ], DWV, MAT.abs, 15,
@@ -394,17 +412,27 @@ export function addPlumbing(reg: Registry) {
     [stackX, fixtureY + 0.55, -0.75], [stackX, fixtureY + 0.55, stackZ], VENT, MAT.pvc, 15,
     ["plumbing", "vent", "bath"], "Dry vent from the lavatory.", "Connect the lavatory to the vent system.",
     { explodeGroup: "assembly.wall.bath", explodeVector: [1.5, 0.5, 0], local: [0.5, 0.2, 0], parentId: "assembly.wall.bath" });
+  pipe(reg, "plumbing.vent.kitchen.arm", "Kitchen vent cabinet arm", "pipe-vent",
+    [kitX, Y.floorTop + 0.62, 3.05], [kitVentX, Y.floorTop + 0.62, 3.05], VENT, MAT.pvc, 15,
+    ["plumbing", "vent", "kitchen"], "Short vent arm in the kitchen cabinet, under the window sill.",
+    "Move off the window centreline before entering the wall.",
+    { explodeGroup: "assembly.wall.front", explodeVector: [0, 0.4, 1.5], local: [0, 0.15, 0.4], parentId: "assembly.wall.front" });
+  pipe(reg, "plumbing.vent.kitchen.into-wall", "Kitchen vent into wall", "pipe-vent",
+    [kitVentX, Y.floorTop + 0.62, 3.05], [kitVentX, Y.floorTop + 0.62, kitWallZ], VENT, MAT.pvc, 15,
+    ["plumbing", "vent", "kitchen"], "Turn from the cabinet into the front-wall cavity beside W2.",
+    "Enter the framed wall in a stud bay, not the window unit.",
+    { explodeGroup: "assembly.wall.front", explodeVector: [0, 0.45, 1.6], local: [0, 0.15, 0.42], parentId: "assembly.wall.front" });
   pipe(reg, "plumbing.vent.kitchen.rise", "Kitchen vent riser", "pipe-vent",
-    [kitX, Y.floorTop + 0.7, 3.05], [kitX, ventY, 3.05], VENT, MAT.pvc, 15,
-    ["plumbing", "vent", "kitchen"], "Kitchen vent rising in the service wall, not through the room.",
-    "Take the kitchen trap to the attic/ceiling plane. This is topology, not an NPC vent table.",
+    [kitVentX, Y.floorTop + 0.62, kitWallZ], [kitVentX, ventY, kitWallZ], VENT, MAT.pvc, 15,
+    ["plumbing", "vent", "kitchen"], "Kitchen vent rising in the service wall beside the window.",
+    "Take the kitchen trap to the attic/ceiling plane inside the wall cavity.",
     { explodeGroup: "assembly.wall.front", explodeVector: [0, 0.5, 1.7], local: [0, 0.2, 0.45], parentId: "assembly.wall.front" });
   pipe(reg, "plumbing.vent.kitchen.001", "Kitchen vent through attic", "pipe-vent",
-    [kitX, ventY, 3.05], [stackX, ventY, 3.05], VENT, MAT.pvc, 15,
+    [kitVentX, ventY, kitWallZ], [stackX, ventY, kitWallZ], VENT, MAT.pvc, 15,
     ["plumbing", "vent", "kitchen"], "Kitchen vent crossing above the ceiling to the stack.",
     "Keep the kitchen trap from siphoning — educational topology in the attic, not occupied space.");
   pipe(reg, "plumbing.vent.kitchen.002", "Kitchen vent to stack", "pipe-vent",
-    [stackX, ventY, 3.05], [stackX, ventY, stackZ], VENT, MAT.pvc, 15,
+    [stackX, ventY, kitWallZ], [stackX, ventY, stackZ], VENT, MAT.pvc, 15,
     ["plumbing", "vent", "kitchen"], "Kitchen vent joining the stack vent above the ceiling.",
     "Tie kitchen venting into the main stack in the attic plane.");
 
@@ -472,6 +500,24 @@ export function addPlumbing(reg: Registry) {
     penetration: { hostId: "subfloor.5", tradeComponentId: "plumbing.supply.hot.kitchen.003", purpose: "kitchen-hot-riser" },
     dependencies: ["plumbing.supply.hot.kitchen.003"],
   });
+  addBox(reg, {
+    id: "penetration.floor.plumbing.dwv.kitchen",
+    type: "penetration",
+    label: "Kitchen drain floor penetration",
+    parentId: "assembly.floor",
+    trade: "plumbing",
+    center: [2.75, Y.floorTop, 3.05],
+    size: [0.08, 0.05, 0.08],
+    material: MAT.wood,
+    stage: 15,
+    explodeGroup: "assembly.floor",
+    explodeVector: [0, 0.7, 0],
+    tags: ["plumbing", "penetration", "kitchen"],
+    short: "Opening where the kitchen drain drops through the subfloor.",
+    purpose: "Host/trade penetration so the kitchen waste drop is an intended opening.",
+    penetration: { hostId: "subfloor.5", tradeComponentId: "plumbing.dwv.branch.kitchen.drop", purpose: "kitchen-dwv-drop" },
+    dependencies: ["plumbing.dwv.branch.kitchen.drop"],
+  });
 }
 
 export const PLUMBING_CONNECTIONS: SystemConnection[] = [
@@ -496,23 +542,28 @@ export const PLUMBING_CONNECTIONS: SystemConnection[] = [
   { id: "pl.hot.kit2", from: "plumbing.supply.hot.kitchen.001", to: "plumbing.supply.hot.kitchen.002", kind: "hot" },
   { id: "pl.hot.kit3", from: "plumbing.supply.hot.kitchen.002", to: "plumbing.supply.hot.kitchen.003", kind: "hot" },
   { id: "pl.hot.kit4", from: "plumbing.supply.hot.kitchen.003", to: "plumbing.fixture.sink.kitchen", kind: "hot" },
-  { id: "pl.dwv.toilet", from: "plumbing.fixture.toilet.bath", to: "plumbing.dwv.branch.toilet.001", kind: "drain" },
+  { id: "pl.dwv.toilet", from: "plumbing.fixture.toilet.bath", to: "plumbing.dwv.branch.toilet.drop", kind: "drain" },
+  { id: "pl.dwv.toilet1b", from: "plumbing.dwv.branch.toilet.drop", to: "plumbing.dwv.branch.toilet.001", kind: "drain" },
   { id: "pl.dwv.toilet2", from: "plumbing.dwv.branch.toilet.001", to: "plumbing.dwv.stack.001", kind: "drain" },
   { id: "pl.dwv.lav1", from: "plumbing.fixture.sink.bath", to: "plumbing.dwv.trap.lav.001", kind: "drain" },
   { id: "pl.dwv.lav2", from: "plumbing.dwv.trap.lav.001", to: "plumbing.dwv.branch.lav.001", kind: "drain" },
   { id: "pl.dwv.lav3", from: "plumbing.dwv.branch.lav.001", to: "plumbing.dwv.stack.001", kind: "drain" },
   { id: "pl.dwv.tub1", from: "plumbing.fixture.tub.bath", to: "plumbing.dwv.trap.tub.001", kind: "drain" },
-  { id: "pl.dwv.tub2", from: "plumbing.dwv.trap.tub.001", to: "plumbing.dwv.branch.tub.001", kind: "drain" },
+  { id: "pl.dwv.tub1b", from: "plumbing.dwv.trap.tub.001", to: "plumbing.dwv.branch.tub.drop", kind: "drain" },
+  { id: "pl.dwv.tub2", from: "plumbing.dwv.branch.tub.drop", to: "plumbing.dwv.branch.tub.001", kind: "drain" },
   { id: "pl.dwv.tub3", from: "plumbing.dwv.branch.tub.001", to: "plumbing.dwv.stack.001", kind: "drain" },
   { id: "pl.dwv.kit1", from: "plumbing.fixture.sink.kitchen", to: "plumbing.dwv.trap.kitchen.001", kind: "drain" },
-  { id: "pl.dwv.kit2", from: "plumbing.dwv.trap.kitchen.001", to: "plumbing.dwv.branch.kitchen.001", kind: "drain" },
+  { id: "pl.dwv.kit1b", from: "plumbing.dwv.trap.kitchen.001", to: "plumbing.dwv.branch.kitchen.drop", kind: "drain" },
+  { id: "pl.dwv.kit2", from: "plumbing.dwv.branch.kitchen.drop", to: "plumbing.dwv.branch.kitchen.001", kind: "drain" },
   { id: "pl.dwv.kit3", from: "plumbing.dwv.branch.kitchen.001", to: "plumbing.dwv.branch.kitchen.002", kind: "drain" },
   { id: "pl.dwv.kit4", from: "plumbing.dwv.branch.kitchen.002", to: "plumbing.dwv.stack.001", kind: "drain" },
   { id: "pl.dwv.exit", from: "plumbing.dwv.stack.001", to: "plumbing.dwv.building-drain.001", kind: "drain" },
   { id: "pl.vent.stack", from: "plumbing.dwv.stack.001", to: "plumbing.vent.stack.001", kind: "vent" },
   { id: "pl.vent.lav", from: "plumbing.dwv.trap.lav.001", to: "plumbing.vent.lav.001", kind: "vent" },
   { id: "pl.vent.lav2", from: "plumbing.vent.lav.001", to: "plumbing.vent.stack.001", kind: "vent" },
-  { id: "pl.vent.kit", from: "plumbing.dwv.trap.kitchen.001", to: "plumbing.vent.kitchen.rise", kind: "vent" },
+  { id: "pl.vent.kit", from: "plumbing.dwv.trap.kitchen.001", to: "plumbing.vent.kitchen.arm", kind: "vent" },
+  { id: "pl.vent.kit1b", from: "plumbing.vent.kitchen.arm", to: "plumbing.vent.kitchen.into-wall", kind: "vent" },
+  { id: "pl.vent.kit1c", from: "plumbing.vent.kitchen.into-wall", to: "plumbing.vent.kitchen.rise", kind: "vent" },
   { id: "pl.vent.kit2", from: "plumbing.vent.kitchen.rise", to: "plumbing.vent.kitchen.001", kind: "vent" },
   { id: "pl.vent.kit3", from: "plumbing.vent.kitchen.001", to: "plumbing.vent.kitchen.002", kind: "vent" },
   { id: "pl.vent.kit4", from: "plumbing.vent.kitchen.002", to: "plumbing.vent.stack.001", kind: "vent" },

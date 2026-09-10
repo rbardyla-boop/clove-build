@@ -58,6 +58,9 @@ export function addHvac(reg: Registry) {
   const slabY = Y.footingTop + 0.12;
   const indoor: Vec3 = [0.35, slabY + 0.55, 1.55];
   const outdoor: Vec3 = [1.35, P.grade + 0.42, -halfW - 0.85];
+  // 2×10 joists are 235 mm. Trunks this size hang below the joists in the basement.
+  const underDuctY = Y.sillTop - 0.14;
+  const plenum: Vec3 = [indoor[0], underDuctY, indoor[2]];
 
   addBox(reg, {
     id: "hvac.heatpump.outdoor.001",
@@ -195,50 +198,122 @@ export function addHvac(reg: Registry) {
 
   duct(
     reg,
+    "hvac.duct.supply.riser",
+    "Supply riser from air handler",
+    [indoor[0], indoor[1] + 0.45, indoor[2]],
+    plenum,
+    0.22,
+    ["hvac", "supply", "mechanical"],
+    "Vertical supply from the air handler up to the under-joist trunk.",
+    "Connect the plant to the floor system. Not a static-pressure calculation.",
+    { role: "supply" },
+  );
+  duct(
+    reg,
     "hvac.duct.supply.main",
     "Supply trunk",
-    [indoor[0], Y.floorTop - 0.18, indoor[2] - 0.1],
-    [indoor[0], Y.floorTop - 0.18, -0.4],
+    plenum,
+    [indoor[0], underDuctY, 0.15],
     0.22,
     ["hvac", "supply"],
-    "Main supply duct under the floor.",
-    "Carry supply air toward room branches. This is schematic airflow, not CFD.",
+    "Main supply trunk hung below the joists.",
+    "Carry supply air in the basement, not through the 2×10 joists. Schematic airflow, not CFD.",
     { role: "supply" },
   );
   duct(
     reg,
     "hvac.duct.supply.front",
     "Supply to front rooms",
-    [indoor[0], Y.floorTop - 0.18, -0.4],
-    [1.4, Y.floorTop - 0.18, 2.4],
+    plenum,
+    [indoor[0], underDuctY, 2.55],
     0.16,
     ["hvac", "supply"],
-    "Supply branch toward the front rooms.",
-    "A duct occupying floor-joist space.",
+    "Supply branch along a joist bay toward the front rooms.",
+    "Stay parallel to the joists until the terminal takeoff.",
+    { role: "supply" },
+  );
+  duct(
+    reg,
+    "hvac.duct.supply.front.x",
+    "Supply takeoff to front grille",
+    [indoor[0], underDuctY, 2.55],
+    [1.4, underDuctY, 2.55],
+    0.14,
+    ["hvac", "supply"],
+    "Cross-joist takeoff hung below the joists.",
+    "A hung duct may cross joists; it does not bore a 140 mm hole through them.",
     { role: "supply" },
   );
   duct(
     reg,
     "hvac.duct.supply.bath",
     "Supply to bathroom",
-    [indoor[0], Y.floorTop - 0.18, -0.4],
-    [-3.1, Y.floorTop - 0.18, -1.4],
+    plenum,
+    [-3.1, underDuctY, indoor[2]],
     0.14,
     ["hvac", "supply", "bath"],
-    "Supply branch to the bathroom.",
-    "Conditioned air to the wet room.",
+    "Supply branch hung below the joists toward the wet room.",
+    "Run under the floor structure to the bathroom.",
+    { role: "supply" },
+  );
+  duct(
+    reg,
+    "hvac.duct.supply.bath.z",
+    "Supply bath turn",
+    [-3.1, underDuctY, indoor[2]],
+    [-3.1, underDuctY, -1.4],
+    0.14,
+    ["hvac", "supply", "bath"],
+    "Bathroom takeoff along a joist bay.",
+    "Axis-aligned under-floor run to the bath grille.",
     { role: "supply" },
   );
   duct(
     reg,
     "hvac.duct.supply.kitchen",
     "Supply to kitchen",
-    [1.4, Y.floorTop - 0.18, 2.4],
-    [2.6, Y.floorTop - 0.18, 2.6],
+    [1.4, underDuctY, 2.55],
+    [2.6, underDuctY, 2.55],
     0.14,
     ["hvac", "supply", "kitchen"],
-    "Supply branch to the kitchen.",
-    "A terminal run in the service zone.",
+    "Kitchen takeoff hung below the joists.",
+    "A terminal run in the service zone, under the floor.",
+    { role: "supply" },
+  );
+  duct(
+    reg,
+    "hvac.duct.supply.front.rise",
+    "Front grille rise",
+    [1.4, underDuctY, 2.55],
+    [1.4, Y.floorTop + 0.02, 2.55],
+    0.12,
+    ["hvac", "supply"],
+    "Rise through the floor at the front grille.",
+    "The only above-floor supply is the terminal.",
+    { role: "supply" },
+  );
+  duct(
+    reg,
+    "hvac.duct.supply.bath.rise",
+    "Bath grille rise",
+    [-3.1, underDuctY, -1.4],
+    [-3.1, Y.floorTop + 0.02, -1.4],
+    0.1,
+    ["hvac", "supply", "bath"],
+    "Rise through the floor at the bathroom grille.",
+    "Terminal rise, not a trunk through the joists.",
+    { role: "supply" },
+  );
+  duct(
+    reg,
+    "hvac.duct.supply.kitchen.rise",
+    "Kitchen grille rise",
+    [2.6, underDuctY, 2.55],
+    [2.6, Y.floorTop + 0.02, 2.55],
+    0.1,
+    ["hvac", "supply", "kitchen"],
+    "Rise through the floor at the kitchen grille.",
+    "Terminal rise at the kitchen.",
     { role: "supply" },
   );
 
@@ -260,7 +335,7 @@ export function addHvac(reg: Registry) {
     visualization: "SCHEMATIC AIRFLOW",
     provenance: PROV_EDU,
     system: { systemId: "system.hvac", nodeId: "hvac.terminal.front.001", role: "supply-terminal" },
-    dependencies: ["hvac.duct.supply.front"],
+    dependencies: ["hvac.duct.supply.front.x"],
   });
   addBox(reg, {
     id: "hvac.terminal.bath.001",
@@ -280,7 +355,7 @@ export function addHvac(reg: Registry) {
     visualization: "SCHEMATIC AIRFLOW",
     provenance: PROV_EDU,
     system: { systemId: "system.hvac", nodeId: "hvac.terminal.bath.001", role: "supply-terminal" },
-    dependencies: ["hvac.duct.supply.bath"],
+    dependencies: ["hvac.duct.supply.bath.z"],
   });
   addBox(reg, {
     id: "hvac.terminal.kitchen.001",
@@ -288,7 +363,7 @@ export function addHvac(reg: Registry) {
     label: "Kitchen supply grille",
     parentId: "assembly.hvac",
     trade: "hvac",
-    center: [2.6, Y.floorTop + 0.02, 2.6],
+    center: [2.6, Y.floorTop + 0.02, 2.55],
     size: [0.3, 0.04, 0.16],
     material: MAT.steel,
     stage: 21,
@@ -300,19 +375,43 @@ export function addHvac(reg: Registry) {
     visualization: "SCHEMATIC AIRFLOW",
     provenance: PROV_EDU,
     system: { systemId: "system.hvac", nodeId: "hvac.terminal.kitchen.001", role: "supply-terminal" },
-    dependencies: ["hvac.duct.supply.kitchen"],
+    dependencies: ["hvac.duct.supply.kitchen.rise"],
   });
 
   duct(
     reg,
     "hvac.duct.return.main",
     "Return path",
-    [indoor[0] - 0.25, Y.floorTop - 0.22, indoor[2]],
-    [indoor[0] - 0.25, Y.floorTop - 0.22, 0.2],
+    [0.1, underDuctY - 0.04, 0.15],
+    [0.1, underDuctY - 0.04, indoor[2]],
     0.24,
     ["hvac", "return"],
-    "Return trunk to the air handler.",
+    "Return trunk hung below the joists.",
     "Air coming back to be conditioned. Schematic, not a pressure model.",
+    { role: "return" },
+  );
+  duct(
+    reg,
+    "hvac.duct.return.riser",
+    "Return drop to air handler",
+    [0.1, underDuctY - 0.04, indoor[2]],
+    [indoor[0] - 0.25, indoor[1] + 0.35, indoor[2]],
+    0.22,
+    ["hvac", "return", "mechanical"],
+    "Return drop from the under-joist trunk into the air handler.",
+    "Close the air loop in the mechanical space.",
+    { role: "return" },
+  );
+  duct(
+    reg,
+    "hvac.duct.return.rise",
+    "Return grille drop",
+    [0.1, Y.floorTop + 0.015, 0.15],
+    [0.1, underDuctY - 0.04, 0.15],
+    0.16,
+    ["hvac", "return"],
+    "Drop from the floor grille into the hung return.",
+    "The grille is in the floor; the trunk is below the joists.",
     { role: "return" },
   );
   addBox(reg, {
@@ -333,7 +432,7 @@ export function addHvac(reg: Registry) {
     visualization: "SCHEMATIC AIRFLOW",
     provenance: PROV_EDU,
     system: { systemId: "system.hvac", nodeId: "hvac.terminal.return.001", role: "return-terminal" },
-    dependencies: ["hvac.duct.return.main"],
+    dependencies: ["hvac.duct.return.rise"],
   });
 
   addBox(reg, {
@@ -416,21 +515,98 @@ export function addHvac(reg: Registry) {
     system: { systemId: "system.hvac", nodeId: "hvac.exhaust.kitchen.001", role: "exhaust" },
     dependencies: ["assembly.wall.front"],
   });
+
+  addBox(reg, {
+    id: "penetration.floor.hvac.front",
+    type: "penetration",
+    label: "Front supply floor penetration",
+    parentId: "assembly.floor",
+    trade: "hvac",
+    center: [1.4, Y.floorTop, 2.55],
+    size: [0.16, 0.05, 0.16],
+    material: MAT.wood,
+    stage: 16,
+    explodeGroup: "assembly.floor",
+    explodeVector: [0, 0.6, 0],
+    tags: ["hvac", "penetration"],
+    short: "Opening where the front supply rises through the subfloor.",
+    purpose: "Host/trade penetration for the supply terminal.",
+    penetration: { hostId: "subfloor.3", tradeComponentId: "hvac.duct.supply.front.rise", purpose: "supply-terminal" },
+  });
+  addBox(reg, {
+    id: "penetration.floor.hvac.bath",
+    type: "penetration",
+    label: "Bath supply floor penetration",
+    parentId: "assembly.floor",
+    trade: "hvac",
+    center: [-3.1, Y.floorTop, -1.4],
+    size: [0.14, 0.05, 0.14],
+    material: MAT.wood,
+    stage: 16,
+    explodeGroup: "assembly.floor",
+    explodeVector: [0, 0.6, 0],
+    tags: ["hvac", "penetration", "bath"],
+    short: "Opening where the bathroom supply rises through the subfloor.",
+    purpose: "Host/trade penetration for the bath terminal.",
+    penetration: { hostId: "subfloor.0", tradeComponentId: "hvac.duct.supply.bath.rise", purpose: "supply-terminal" },
+  });
+  addBox(reg, {
+    id: "penetration.floor.hvac.kitchen",
+    type: "penetration",
+    label: "Kitchen supply floor penetration",
+    parentId: "assembly.floor",
+    trade: "hvac",
+    center: [2.6, Y.floorTop, 2.55],
+    size: [0.14, 0.05, 0.14],
+    material: MAT.wood,
+    stage: 16,
+    explodeGroup: "assembly.floor",
+    explodeVector: [0, 0.6, 0],
+    tags: ["hvac", "penetration", "kitchen"],
+    short: "Opening where the kitchen supply rises through the subfloor.",
+    purpose: "Host/trade penetration for the kitchen terminal.",
+    penetration: { hostId: "subfloor.5", tradeComponentId: "hvac.duct.supply.kitchen.rise", purpose: "supply-terminal" },
+  });
+  addBox(reg, {
+    id: "penetration.floor.hvac.return",
+    type: "penetration",
+    label: "Return floor penetration",
+    parentId: "assembly.floor",
+    trade: "hvac",
+    center: [0.1, Y.floorTop, 0.15],
+    size: [0.22, 0.05, 0.16],
+    material: MAT.wood,
+    stage: 16,
+    explodeGroup: "assembly.floor",
+    explodeVector: [0, 0.6, 0],
+    tags: ["hvac", "penetration"],
+    short: "Opening where the return drops through the subfloor.",
+    purpose: "Host/trade penetration for the central return.",
+    penetration: { hostId: "subfloor.3", tradeComponentId: "hvac.duct.return.rise", purpose: "return-terminal" },
+  });
 }
 
 export const HVAC_CONNECTIONS: SystemConnection[] = [
   { id: "hv.ref", from: "hvac.heatpump.indoor.001", to: "hvac.refrigerant.001", kind: "refrigerant" },
   { id: "hv.ref2", from: "hvac.refrigerant.001", to: "hvac.heatpump.outdoor.001", kind: "refrigerant" },
   { id: "hv.cond", from: "hvac.heatpump.indoor.001", to: "hvac.condensate.001", kind: "condensate" },
-  { id: "hv.sup1", from: "hvac.heatpump.indoor.001", to: "hvac.duct.supply.main", kind: "air-supply" },
+  { id: "hv.sup0", from: "hvac.heatpump.indoor.001", to: "hvac.duct.supply.riser", kind: "air-supply" },
+  { id: "hv.sup1", from: "hvac.duct.supply.riser", to: "hvac.duct.supply.main", kind: "air-supply" },
   { id: "hv.sup2", from: "hvac.duct.supply.main", to: "hvac.duct.supply.front", kind: "air-supply" },
+  { id: "hv.sup2b", from: "hvac.duct.supply.front", to: "hvac.duct.supply.front.x", kind: "air-supply" },
   { id: "hv.sup3", from: "hvac.duct.supply.main", to: "hvac.duct.supply.bath", kind: "air-supply" },
-  { id: "hv.sup4", from: "hvac.duct.supply.front", to: "hvac.duct.supply.kitchen", kind: "air-supply" },
-  { id: "hv.t1", from: "hvac.duct.supply.front", to: "hvac.terminal.front.001", kind: "air-supply" },
-  { id: "hv.t2", from: "hvac.duct.supply.bath", to: "hvac.terminal.bath.001", kind: "air-supply" },
-  { id: "hv.t3", from: "hvac.duct.supply.kitchen", to: "hvac.terminal.kitchen.001", kind: "air-supply" },
-  { id: "hv.ret1", from: "hvac.terminal.return.001", to: "hvac.duct.return.main", kind: "air-return" },
-  { id: "hv.ret2", from: "hvac.duct.return.main", to: "hvac.heatpump.indoor.001", kind: "air-return" },
+  { id: "hv.sup3b", from: "hvac.duct.supply.bath", to: "hvac.duct.supply.bath.z", kind: "air-supply" },
+  { id: "hv.sup4", from: "hvac.duct.supply.front.x", to: "hvac.duct.supply.kitchen", kind: "air-supply" },
+  { id: "hv.t1", from: "hvac.duct.supply.front.x", to: "hvac.duct.supply.front.rise", kind: "air-supply" },
+  { id: "hv.t1b", from: "hvac.duct.supply.front.rise", to: "hvac.terminal.front.001", kind: "air-supply" },
+  { id: "hv.t2", from: "hvac.duct.supply.bath.z", to: "hvac.duct.supply.bath.rise", kind: "air-supply" },
+  { id: "hv.t2b", from: "hvac.duct.supply.bath.rise", to: "hvac.terminal.bath.001", kind: "air-supply" },
+  { id: "hv.t3", from: "hvac.duct.supply.kitchen", to: "hvac.duct.supply.kitchen.rise", kind: "air-supply" },
+  { id: "hv.t3b", from: "hvac.duct.supply.kitchen.rise", to: "hvac.terminal.kitchen.001", kind: "air-supply" },
+  { id: "hv.ret0", from: "hvac.terminal.return.001", to: "hvac.duct.return.rise", kind: "air-return" },
+  { id: "hv.ret1", from: "hvac.duct.return.rise", to: "hvac.duct.return.main", kind: "air-return" },
+  { id: "hv.ret1b", from: "hvac.duct.return.main", to: "hvac.duct.return.riser", kind: "air-return" },
+  { id: "hv.ret2", from: "hvac.duct.return.riser", to: "hvac.heatpump.indoor.001", kind: "air-return" },
   { id: "hv.hrv", from: "hvac.hrv.001", to: "hvac.heatpump.indoor.001", kind: "air-supply" },
   { id: "hv.ex1", from: "hvac.exhaust.bath.001", to: "hvac.exhaust.bath.duct", kind: "exhaust" },
   { id: "hv.ex2", from: "hvac.exhaust.bath.duct", to: "hvac.exhaust.bath.outlet", kind: "exhaust" },

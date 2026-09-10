@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { buildPeiHouse } from "../../specimen/pei-part9-house/index.ts";
+import { Y } from "../../specimen/pei-part9-house/params.ts";
 import { hashGraph } from "../building-graph/hash.ts";
 import { checkGraphIntegrity } from "../building-graph/integrity.ts";
 import { explodeOffset, vecLen } from "../explode/engine.ts";
@@ -81,5 +82,40 @@ describe("integrated trades house", () => {
     ]) {
       assert.ok(graph.components[id]!.geometry.center[1] < floorTop, id);
     }
+  });
+
+  it("kitchen drain hangs below the joists instead of boring every bay", () => {
+    const drain = graph.components["plumbing.dwv.branch.kitchen.001"]!;
+    assert.ok(drain.geometry.center[1] < Y.sillTop, `drain y=${drain.geometry.center[1]} sill=${Y.sillTop}`);
+  });
+
+  it("kitchen vent riser is beside window W2, not through the glass", () => {
+    const win = graph.components["envelope.window.front.002"]!;
+    const rise = graph.components["plumbing.vent.kitchen.rise"]!;
+    const wx = win.geometry.center[0];
+    const ww = win.geometry.size[0];
+    const rx = rise.geometry.center[0];
+    assert.ok(rx < wx - ww / 2 - 0.04 || rx > wx + ww / 2 + 0.04, `vent x=${rx} window ${wx}±${ww / 2}`);
+  });
+
+  it("HVAC trunks hang below the joists", () => {
+    for (const id of ["hvac.duct.supply.main", "hvac.duct.supply.front", "hvac.duct.supply.bath", "hvac.duct.return.main"]) {
+      const c = graph.components[id]!;
+      assert.ok(c.geometry.center[1] < Y.sillTop, `${id} y=${c.geometry.center[1]}`);
+    }
+  });
+
+  it("kitchen return wall is studs, not one lumber slab", () => {
+    const studs = Object.values(graph.components).filter((c) => c.parentId === "assembly.wall.kitchen" && c.type === "common-stud");
+    assert.ok(studs.length >= 6, `studs=${studs.length}`);
+    assert.ok(studs.every((s) => s.geometry.size[0] < 0.1), "a stud is not a 3 m panel");
+  });
+
+  it("bath cable is L-shaped in the floor, not a room diagonal", () => {
+    const a = graph.components["electrical.cable.bath.001"]!;
+    const b = graph.components["electrical.cable.bath.001b"]!;
+    const alongZ = a.geometry.size[2] > a.geometry.size[0];
+    const alongX = b.geometry.size[0] > b.geometry.size[2];
+    assert.ok(alongZ && alongX, "bath home-run should be an axis-aligned L");
   });
 });

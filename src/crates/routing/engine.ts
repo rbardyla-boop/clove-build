@@ -1,3 +1,4 @@
+import { P, Y } from "@/specimen/pei-part9-house/params";
 import type { BuildingGraph } from "@/crates/building-graph/types";
 import { findClashes, type ClashFinding, type ClashKind } from "@/crates/clash/engine";
 import { classifyComponent, serviceRunTooLongInOccupied } from "@/crates/space-model/classify";
@@ -100,6 +101,35 @@ export function findRoutingIssues(graph: BuildingGraph, removedIds: readonly str
         b: c.trade ?? "unknown",
         reason: `${c.label} is a service member with no system node — it is not on a traceable route.`,
       });
+    }
+    const zone = classifyComponent(graph, c);
+    if (c.type === "duct" && zone === "FLOOR_CAVITY") {
+      const [sx, sy, sz] = c.geometry.size;
+      const vertical = sy >= Math.max(sx, sz) * 1.4;
+      if (!vertical && (sy > P.joist.d * 0.33 || Math.min(sx, sz) > P.joist.d * 0.33)) {
+        findings.push({
+          id: `route.joist.${c.id}`,
+          kind: "IMPOSSIBLE_TRANSITION",
+          a: c.id,
+          b: "floor-joist",
+          reason: `${c.label} is too large for the 2×10 joist cavity. A trunk this size is hung below the joists, not bored through them.`,
+          zone,
+        });
+      }
+    }
+    if ((c.type === "pipe-dwv" || c.type === "pipe-vent") && zone === "FLOOR_CAVITY") {
+      const alongX = c.geometry.size[0];
+      const dia = Math.min(c.geometry.size[1], c.geometry.size[2]);
+      if (alongX > P.joistOc * 2.5 && dia > 0.03 && c.geometry.center[1] > Y.sillTop) {
+        findings.push({
+          id: `route.joistbore.${c.id}`,
+          kind: "IMPOSSIBLE_TRANSITION",
+          a: c.id,
+          b: "floor-joist",
+          reason: `${c.label} crosses multiple joist bays inside the joist depth. Hang the run below the joists or stay in one bay.`,
+          zone,
+        });
+      }
     }
   }
 

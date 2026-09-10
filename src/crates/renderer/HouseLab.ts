@@ -308,6 +308,12 @@ export class HouseLab {
     });
   }
 
+  setView(pos: [number, number, number], target: [number, number, number]) {
+    this.camera.position.set(pos[0], pos[1], pos[2]);
+    this.controls.target.set(target[0], target[1], target[2]);
+    this.controls.update();
+  }
+
   fitHouse() {
     this.animateCamera(new THREE.Vector3(15.5, 8.6, 17.5), new THREE.Vector3(0, 1.35, 0));
   }

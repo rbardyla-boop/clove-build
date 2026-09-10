@@ -25,4 +25,8 @@ Failures found during construction and the permanent detector for each.
 | ROUTE-003: Check could not see overlay routing faults because rules rebuilt `buildPeiHouse()` instead of the working graph | IMPLEMENTATION | `RuleContext.graph`; `graphWithFaults` overlay; challenge `challenge.cross.occupied-route` |
 | LICENCE-001: temptation to ship NBC/NPC/CEC paragraphs because PDFs are free to read | CONCEPT | Shadow pack `sourceText: NOT_DISTRIBUTED`; gitignored `private-reference/`; contribution schema rejects wording without rights |
 
-Gauntlet classes still expected from the human Ryan Full-House Test A–Z.
+| ROUTE-004: HVAC 220 mm trunk occupied the 235 mm joist cavity | CONCEPT | Ducts hung below joists with a riser from the air handler; `IMPOSSIBLE_TRANSITION` flags oversize FLOOR_CAVITY ducts |
+| ROUTE-005: kitchen DWV ran through every joist at mid-depth | MECHANISM | Kitchen waste hung under joists + floor drop + penetration |
+| ROUTE-006: kitchen vent riser occupied window W2 | MECHANISM | Rise offset to king-stud bay east of W2; clash engine treats window/door units as solid hosts |
+| FRAME-001: kitchen return wall was one 3.4 m lumber slab | CONCEPT | Real 2×4 studs at 16″ o.c. with plates |
+| ROUTE-007: bath cable was a floor-diagonal laser | MECHANISM | Split into joist-bay run + cross-joist run (`electrical.cable.bath.001` / `.001b`) |
