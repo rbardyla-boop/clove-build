@@ -89,7 +89,13 @@ export type ComponentType =
   | "deck"
   | "pool"
   | "hot-tub"
-  | "equipment-pad";
+  | "equipment-pad"
+  | "compacted-base"
+  | "pump"
+  | "filter"
+  | "disconnect"
+  | "water-volume"
+  | "barrier";
 
 export type GeometryDescriptor = {
   kind: "box" | "group";
@@ -299,7 +305,7 @@ export type SystemConnection = {
   id: string;
   from: string;
   to: string;
-  kind: "supply" | "return" | "drain" | "vent" | "hot" | "cold" | "circuit" | "air-supply" | "air-return" | "exhaust" | "bonding" | "refrigerant" | "condensate";
+  kind: "supply" | "return" | "drain" | "vent" | "hot" | "cold" | "circuit" | "air-supply" | "air-return" | "exhaust" | "bonding" | "refrigerant" | "condensate" | "feeder" | "branch" | "suction" | "circulation";
 };
 
 export type SystemGraph = {

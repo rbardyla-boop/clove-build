@@ -361,7 +361,22 @@ export class HouseLab {
   }
 
   fitHouse() {
-    this.animateCamera(new THREE.Vector3(13.2, 6.8, 14.8), new THREE.Vector3(0, 1.05, 0));
+    const box = new THREE.Box3();
+    let any = false;
+    for (const [id, mesh] of this.meshes) {
+      const c = this.graph.components[id];
+      if (!c || c.type === "site") continue;
+      box.expandByObject(mesh);
+      any = true;
+    }
+    if (!any) {
+      this.animateCamera(new THREE.Vector3(13.2, 6.8, 14.8), new THREE.Vector3(0, 1.05, 0));
+      return;
+    }
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(TMP);
+    const dist = Math.max(size.x, size.y, size.z, 7) * 1.25;
+    this.animateCamera(center.clone().add(new THREE.Vector3(dist * 0.7, Math.max(4.2, dist * 0.38), dist * 0.82)), center);
   }
 
   resetCamera() {

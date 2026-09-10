@@ -23,14 +23,14 @@ export const SPECIMENS: SpecimenMeta[] = [
     id: "PEI-SLAB-COTTAGE-001",
     title: "Slab-on-grade cottage",
     constructionType: "slab-on-grade",
-    summary: "A different dwelling type so the engine cannot memorize one basement house.",
+    summary: "Compact slab-on-grade cottage. Drains in the granular base, supply in walls and attic.",
     build: buildSlabCottage,
   },
   {
     id: "PEI-RURAL-POOL-001",
     title: "Rural cottage + pool",
     constructionType: "slab-on-grade",
-    summary: "Deck, hot tub and pool. Bonding and water/electrical clearances stay unknown unless proven.",
+    summary: "Slab cottage plus deck, in-ground pool, hot tub, circulation and schematic bonding. CEC 68 stays unknown.",
     build: buildRuralPoolHouse,
   },
 ];

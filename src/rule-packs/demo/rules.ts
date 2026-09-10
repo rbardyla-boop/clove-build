@@ -6,6 +6,7 @@ import { findRoutingIssues } from "@/crates/routing/engine";
 import { classifyDwvRun } from "@/crates/geometry/run";
 import { evaluateRelations } from "@/crates/relations/engine";
 import { findSequenceViolations } from "@/crates/sequence/dag";
+import { findRecreationIssues } from "@/crates/recreation/engine";
 import { buildPeiHouse } from "@/specimen/pei-part9-house";
 
 const DEMO = {
@@ -842,6 +843,33 @@ export const demoRules: Rule[] = [
         verdict: "FAIL",
         componentIds: hits.map((h) => h.a).slice(0, 12),
         inputs: { violations: hits.length, sample: hits[0]?.reason },
+        reason: hits[0]!.reason,
+      };
+    },
+  },
+  {
+    id: "REC-GEOM-001",
+    title: "Pool and hot-tub equipment is physically connected and seated",
+    packVersion: DEMO_PACK_VERSION,
+    domain: "cross-trade",
+    provenance: DEMO,
+    authorityLabel: "Project geometric fact — not a CEC Section 68 determination",
+    evaluate: (ctx) => {
+      const graph = graphFor(ctx);
+      const hits = findRecreationIssues(graph, ctx.removedIds);
+      if (hits.length === 0) {
+        return {
+          verdict: "PASS",
+          componentIds: [],
+          inputs: { hits: 0 },
+          reason: "No disconnected circulation, through-water cable, or unseated pool equipment was detected.",
+          assumption: "This is geometry, not a licensed electrical inspection.",
+        };
+      }
+      return {
+        verdict: "FAIL",
+        componentIds: [...new Set(hits.map((h) => h.a))].slice(0, 12),
+        inputs: { hits: hits.length, kind: hits[0]!.kind },
         reason: hits[0]!.reason,
       };
     },

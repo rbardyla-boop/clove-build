@@ -9,6 +9,7 @@ const FOUNDATION: ReadonlySet<ComponentType> = new Set([
   "slab",
   "gasket",
   "anchor",
+  "compacted-base",
 ]);
 
 const ENVELOPE: ReadonlySet<ComponentType> = new Set([
@@ -21,6 +22,7 @@ const ENVELOPE: ReadonlySet<ComponentType> = new Set([
   "roof-covering",
   "rainscreen",
   "fascia",
+  "barrier",
 ]);
 
 const PLUMBING: ReadonlySet<ComponentType> = new Set([
@@ -31,6 +33,9 @@ const PLUMBING: ReadonlySet<ComponentType> = new Set([
   "fixture",
   "trap",
   "water-heater",
+  "pump",
+  "filter",
+  "water-volume",
 ]);
 
 const ELECTRICAL: ReadonlySet<ComponentType> = new Set([
@@ -43,6 +48,7 @@ const ELECTRICAL: ReadonlySet<ComponentType> = new Set([
   "luminaire",
   "service-entry",
   "bonding",
+  "disconnect",
 ]);
 
 const HVAC: ReadonlySet<ComponentType> = new Set([
