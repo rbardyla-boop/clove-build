@@ -1,21 +1,22 @@
-import { WINDOW_CHALLENGE } from "@/crates/break-it/challenge";
+import { challengeById } from "@/crates/trades/challenges";
 import { useLab } from "@/crates/session/store";
 
 export function ChallengeBanner() {
   const active = useLab((s) => s.challengeActive);
+  const challengeId = useLab((s) => s.challengeId);
   const check = useLab((s) => s.check);
   const dispatch = useLab((s) => s.dispatch);
   if (!active) return null;
-  const opening = check?.find((r) => r.ruleId === "DEMO-OPENING-001");
+  const ch = challengeById(challengeId);
+  if (!ch) return null;
+  const hintRule = ch.checkHintRuleId ? check?.find((r) => r.ruleId === ch.checkHintRuleId) : undefined;
   return (
     <div className="lab-challenge" role="region" aria-label="Break It challenge">
-      <p className="lab-kicker">Break It</p>
-      <h2>{WINDOW_CHALLENGE.title}</h2>
-      <p>{WINDOW_CHALLENGE.prompt}</p>
-      {opening ? (
-        <p className="lab-note">
-          {opening.verdict === "FAIL" ? opening.reason : WINDOW_CHALLENGE.hintAfterCheck}
-        </p>
+      <p className="lab-kicker">Break It · {ch.trade}</p>
+      <h2>{ch.title}</h2>
+      <p>{ch.prompt}</p>
+      {hintRule ? (
+        <p className="lab-note">{hintRule.verdict === "FAIL" ? hintRule.reason : ch.hintAfterCheck}</p>
       ) : null}
       <div className="lab-inspect-actions">
         <button type="button" className="lab-btn lab-btn-accent" onClick={() => dispatch({ type: "RUN_CHECK" })}>

@@ -1,0 +1,122 @@
+{
+  "passed": 20,
+  "failed": 0,
+  "results": [
+    {
+      "id": "A",
+      "ok": true,
+      "note": "components=564"
+    },
+    {
+      "id": "B1",
+      "ok": true,
+      "note": "stage=4"
+    },
+    {
+      "id": "B2",
+      "ok": true,
+      "note": "stage=23"
+    },
+    {
+      "id": "C",
+      "ok": true,
+      "note": "{\"foundation\":\"on\",\"structure\":\"on\",\"envelope\":\"on\",\"plumbing\":\"on\",\"electrical\":\"on\",\"hvac\":\"on\",\"thermal\":\"on\",\"finish\":\"off\"}"
+    },
+    {
+      "id": "D",
+      "ok": true,
+      "note": "amt=1"
+    },
+    {
+      "id": "E",
+      "ok": true,
+      "note": "scope=assembly.wall.front"
+    },
+    {
+      "id": "F",
+      "ok": true,
+      "note": "scope=assembly.wall.bath"
+    },
+    {
+      "id": "G",
+      "ok": true,
+      "note": "ids=31"
+    },
+    {
+      "id": "H",
+      "ok": true,
+      "note": "ids=34"
+    },
+    {
+      "id": "I",
+      "ok": true,
+      "note": "ids=3"
+    },
+    {
+      "id": "J",
+      "ok": true,
+      "note": "hide=true xray=true"
+    },
+    {
+      "id": "K",
+      "ok": true,
+      "note": "removed=assembly.wall.front.jack.W1.L"
+    },
+    {
+      "id": "L",
+      "ok": true,
+      "note": "removed=assembly.wall.front.jack.W1.L,plumbing.dwv.trap.lav.001"
+    },
+    {
+      "id": "M",
+      "ok": true,
+      "note": "removed=assembly.wall.front.jack.W1.L,plumbing.dwv.trap.lav.001,electrical.cable.receptacles.001"
+    },
+    {
+      "id": "N",
+      "ok": true,
+      "note": "fail=4 incomplete=7 rules=19"
+    },
+    {
+      "id": "O",
+      "ok": true,
+      "note": "{\"removed\":[],\"explode\":0,\"stage\":23,\"flow\":\"off\"}"
+    },
+    {
+      "id": "P1",
+      "ok": true,
+      "note": "amt=1"
+    },
+    {
+      "id": "P2",
+      "ok": true,
+      "note": "amt=0"
+    },
+    {
+      "id": "console",
+      "ok": true,
+      "note": "clean"
+    },
+    {
+      "id": "webgl",
+      "ok": true,
+      "note": "ok"
+    }
+  ],
+  "shots": [
+    "/workspace/screenshots/v02-a-orbit.png",
+    "/workspace/screenshots/v02-b-foundation.png",
+    "/workspace/screenshots/v02-c-layers.png",
+    "/workspace/screenshots/v02-d-explode.png",
+    "/workspace/screenshots/v02-e-front-wall.png",
+    "/workspace/screenshots/v02-f-bath-wall.png",
+    "/workspace/screenshots/v02-g-plumb-trace.png",
+    "/workspace/screenshots/v02-h-elec-trace.png",
+    "/workspace/screenshots/v02-i-hvac-trace.png",
+    "/workspace/screenshots/v02-j-hide-finish.png",
+    "/workspace/screenshots/v02-n-check.png",
+    "/workspace/screenshots/v02-p-explode-after-reset.png",
+    "/workspace/screenshots/v02-z-final.png"
+  ],
+  "errors": []
+}

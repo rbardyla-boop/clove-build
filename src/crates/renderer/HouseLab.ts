@@ -5,6 +5,7 @@ import type { BuildingComponent, BuildingGraph } from "@/crates/building-graph/t
 import { isStageVisible } from "@/crates/construction-sequence/visibility";
 import { explodedCenter } from "@/crates/explode/engine";
 import type { LabSnapshot } from "@/crates/session/apply";
+import { tradeOf } from "@/crates/trades/infer";
 import { createLabMaterials, materialFor, type LabMaterials } from "./materials";
 
 const TMP = new THREE.Vector3();
@@ -127,6 +128,9 @@ export class HouseLab {
         "roof-sheathing",
         "beam",
         "pad-footing",
+        "roof-covering",
+        "cladding",
+        "drywall",
       ]);
       mesh.castShadow = this.renderer.shadowMap.enabled && shadowTypes.has(c.type);
       mesh.receiveShadow = this.renderer.shadowMap.enabled;
@@ -152,15 +156,41 @@ export class HouseLab {
     const removed = new Set(state.removedIds);
     const hidden = new Set(state.hiddenIds);
     const isolated = state.isolatedIds ? new Set(state.isolatedIds) : null;
-    const xrayTypes = new Set(["wall-sheathing", "roof-sheathing", "subfloor", "site"]);
+    const traced = new Set(state.trace?.componentIds ?? []);
+    const xrayTypes = new Set([
+      "wall-sheathing",
+      "roof-sheathing",
+      "subfloor",
+      "site",
+      "drywall",
+      "paint",
+      "cladding",
+      "roof-covering",
+      "wrb",
+      "insulation",
+      "underlayment",
+    ]);
 
     this.renderer.clippingPlanes = state.sectionEnabled ? [this.clipPlane] : [];
     this.clipPlane.constant = state.sectionOffset;
 
+    const t = performance.now() / 1000;
+    const pulse = 0.35 + 0.25 * (0.5 + 0.5 * Math.sin(t * 3));
+    this.mats.flowCold.emissiveIntensity = pulse;
+    this.mats.flowHot.emissiveIntensity = pulse;
+    this.mats.flowDrain.emissiveIntensity = pulse;
+    this.mats.flowVent.emissiveIntensity = pulse;
+    this.mats.flowLive.emissiveIntensity = pulse;
+    this.mats.flowAir.emissiveIntensity = pulse;
+
     for (const [id, mesh] of this.meshes) {
       const c = state.graph.components[id];
       if (!c) continue;
-      const visible = isStageVisible(c, state.constructionStage, removed) && !hidden.has(id);
+      const trade = tradeOf(c);
+      const layer = state.tradeLayers[trade];
+      const finishHidden = state.hideFinish && trade === "finish";
+      const visible =
+        isStageVisible(c, state.constructionStage, removed) && !hidden.has(id) && layer !== "off" && !finishHidden;
       mesh.visible = visible;
       if (!visible) continue;
 
@@ -169,8 +199,12 @@ export class HouseLab {
 
       const isIso = !isolated || isolated.has(id);
       const isXray = state.xray && xrayTypes.has(c.type);
-      const base = materialFor(c.material.family, this.mats);
-      if (!isIso || isXray) {
+      const flowMat = flowMaterial(c, state, this.mats);
+      const base = flowMat ?? materialFor(c.material.family, this.mats);
+      if (traced.has(id)) {
+        mesh.material = this.mats.flowLive;
+        mesh.castShadow = false;
+      } else if (!isIso || isXray || layer === "ghost") {
         mesh.material = this.mats.ghost;
         mesh.castShadow = false;
       } else {
@@ -186,6 +220,7 @@ export class HouseLab {
     if (state.selectedId) want.add(state.selectedId);
     if (this.hoverId) want.add(this.hoverId);
     for (const id of state.checkHighlights) want.add(id);
+    for (const id of state.trace?.componentIds ?? []) want.add(id);
     for (const [id, line] of this.outlines) {
       if (!want.has(id)) {
         this.root.remove(line);
@@ -199,7 +234,12 @@ export class HouseLab {
       let line = this.outlines.get(id);
       if (!line) {
         const geo = new THREE.EdgesGeometry(this.unit);
-        line = new THREE.LineSegments(geo, state.checkHighlights.includes(id) ? this.mats.issue : this.mats.selected);
+        const mat = state.checkHighlights.includes(id)
+          ? this.mats.issue
+          : state.trace?.componentIds.includes(id)
+            ? this.mats.trace
+            : this.mats.selected;
+        line = new THREE.LineSegments(geo, mat);
         line.userData.id = id;
         this.root.add(line);
         this.outlines.set(id, line);
@@ -207,7 +247,11 @@ export class HouseLab {
       line.position.copy(mesh.position);
       line.rotation.copy(mesh.rotation);
       line.scale.copy(mesh.scale).multiplyScalar(1.01);
-      line.material = state.checkHighlights.includes(id) ? this.mats.issue : this.mats.selected;
+      line.material = state.checkHighlights.includes(id)
+        ? this.mats.issue
+        : state.trace?.componentIds.includes(id)
+          ? this.mats.trace
+          : this.mats.selected;
     }
   }
 
@@ -330,6 +374,15 @@ export class HouseLab {
     const dt = Math.min((now - this.last) / 1000, 0.1);
     this.last = now;
     this.controls.update();
+    if (this.snapshot && this.snapshot.flowMode !== "off") {
+      const pulse = 0.35 + 0.25 * (0.5 + 0.5 * Math.sin((now / 1000) * 3));
+      this.mats.flowCold.emissiveIntensity = pulse;
+      this.mats.flowHot.emissiveIntensity = pulse;
+      this.mats.flowDrain.emissiveIntensity = pulse;
+      this.mats.flowVent.emissiveIntensity = pulse;
+      this.mats.flowLive.emissiveIntensity = pulse;
+      this.mats.flowAir.emissiveIntensity = pulse;
+    }
     this.renderer.render(this.scene, this.camera);
     this.drawCalls = this.renderer.info.render.calls;
     this.frames += 1;
@@ -351,3 +404,41 @@ export class HouseLab {
     this.renderer.dispose();
   }
 }
+
+function flowMaterial(c: BuildingComponent, state: LabSnapshot, mats: LabMaterials) {
+  const tags = c.tags ?? [];
+  if (state.flowMode === "control-layers") {
+    if (tags.includes("water-control")) return mats.layerWater;
+    if (tags.includes("air-control")) return mats.layerAir;
+    if (tags.includes("vapour-control")) return mats.layerVapour;
+    if (tags.includes("thermal-control")) return mats.layerThermal;
+    return mats.ghost;
+  }
+  if (state.flowMode === "supply" && (tags.includes("supply") || c.type === "pipe-supply" || c.type === "water-heater" || c.type === "fixture")) {
+    return tags.includes("hot") ? mats.flowHot : mats.flowCold;
+  }
+  if (state.flowMode === "dwv" && (tags.includes("dwv") || c.type === "pipe-dwv" || c.type === "trap" || c.type === "fixture")) {
+    return mats.flowDrain;
+  }
+  if (state.flowMode === "vent" && (tags.includes("vent") || c.type === "pipe-vent")) {
+    return mats.flowVent;
+  }
+  if (state.flowMode === "energize" && (tradeOf(c) === "electrical" || tags.includes("electrical"))) {
+    return mats.flowLive;
+  }
+  if (state.flowMode === "airflow-supply" && (tags.includes("supply") || c.type === "heat-pump-indoor" || c.type === "heat-pump-outdoor")) {
+    return mats.flowAir;
+  }
+  if (state.flowMode === "airflow-return" && tags.includes("return")) {
+    return mats.flowAir;
+  }
+  if (state.flowMode === "airflow-exhaust" && tags.includes("exhaust")) {
+    return mats.flowAir;
+  }
+  if (state.flowMode !== "off") {
+    const t = tradeOf(c);
+    if (t === "structure" || t === "foundation" || t === "finish") return mats.ghost;
+  }
+  return null;
+}
+

@@ -136,6 +136,7 @@
   background: color-mix(in oklab, var(--color-chrome) 88%, transparent);
   box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-paper) 12%, transparent);
   backdrop-filter: blur(10px);
+  z-index: 3;
 }
 
 .lab-kicker {
@@ -305,6 +306,89 @@
   background: var(--color-chrome);
 }
 
+.lab-systems {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  width: min(280px, calc(100vw - 24px));
+  max-height: min(52%, 420px);
+  overflow: auto;
+  padding: 12px;
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--color-chrome) 82%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-paper) 12%, transparent);
+  backdrop-filter: blur(10px);
+  z-index: 2;
+}
+.lab-systems-list {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.lab-systems-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+}
+.lab-systems-toggles,
+.lab-systems-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.lab-mini {
+  appearance: none;
+  border: 0;
+  background: var(--color-chrome-2);
+  color: var(--color-muted);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-paper) 12%, transparent);
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  min-height: 24px;
+}
+.lab-mini-on {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+.lab-viz-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-uncertain);
+  margin: 8px 0;
+}
+.lab-select {
+  appearance: none;
+  background: var(--color-chrome-2);
+  color: var(--color-paper);
+  border: 0;
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-paper) 14%, transparent);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 0.75rem;
+  min-height: 36px;
+}
+.lab-check-group {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in oklab, var(--color-paper) 12%, transparent);
+}
+.lab-check-group summary {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
 .lab-explode {
   display: flex;
   align-items: center;
@@ -341,7 +425,7 @@
 .lab-challenge {
   top: 12px;
   bottom: auto;
-  left: 12px;
+  left: min(304px, calc(100vw - 24px));
 }
 .lab-drawer {
   top: 12px;
@@ -484,6 +568,9 @@
     left: 8px;
     right: 8px;
     width: auto;
+  }
+  .lab-systems {
+    display: none;
   }
 }
 

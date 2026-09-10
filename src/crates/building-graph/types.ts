@@ -1,5 +1,15 @@
 export type Vec3 = [number, number, number];
 
+export type TradeId =
+  | "foundation"
+  | "structure"
+  | "envelope"
+  | "plumbing"
+  | "electrical"
+  | "hvac"
+  | "thermal"
+  | "finish";
+
 export type ComponentType =
   | "site"
   | "excavation"
@@ -28,7 +38,49 @@ export type ComponentType =
   | "collar-tie"
   | "ceiling-joist"
   | "temporary-brace"
-  | "assembly";
+  | "assembly"
+  | "slab"
+  | "interior-partition"
+  | "window-unit"
+  | "door-unit"
+  | "flashing"
+  | "wrb"
+  | "underlayment"
+  | "cladding"
+  | "roof-covering"
+  | "rainscreen"
+  | "pipe-supply"
+  | "pipe-dwv"
+  | "pipe-vent"
+  | "fitting"
+  | "fixture"
+  | "trap"
+  | "water-heater"
+  | "panel"
+  | "breaker"
+  | "cable"
+  | "device-box"
+  | "receptacle"
+  | "switch"
+  | "luminaire"
+  | "service-entry"
+  | "bonding"
+  | "heat-pump-indoor"
+  | "heat-pump-outdoor"
+  | "duct"
+  | "terminal"
+  | "exhaust"
+  | "hrv"
+  | "refrigerant-line"
+  | "condensate"
+  | "insulation"
+  | "air-barrier"
+  | "vapour-barrier"
+  | "drywall"
+  | "trim"
+  | "floor-finish"
+  | "paint"
+  | "penetration";
 
 export type GeometryDescriptor = {
   kind: "box" | "group";
@@ -40,7 +92,23 @@ export type GeometryDescriptor = {
 export type MaterialDescriptor = {
   id: string;
   label: string;
-  family: "soil" | "concrete" | "wood" | "wood-treated" | "sheathing" | "context";
+  family:
+    | "soil"
+    | "concrete"
+    | "wood"
+    | "wood-treated"
+    | "sheathing"
+    | "context"
+    | "metal"
+    | "copper"
+    | "plastic"
+    | "insulation"
+    | "gypsum"
+    | "membrane"
+    | "cladding"
+    | "roofing"
+    | "paint"
+    | "cable";
 };
 
 export type AuthorityCategory =
@@ -48,9 +116,12 @@ export type AuthorityCategory =
   | "OFFICIAL_GUIDANCE"
   | "STANDARD_REFERENCE"
   | "VERIFIED_ENGINEERING_RELATION"
+  | "BUILDING_SCIENCE"
+  | "TRADE_PRACTICE"
   | "PROJECT_MODEL_ASSUMPTION"
   | "EDUCATIONAL_DEMO_RULE"
   | "INFERENCE"
+  | "AI_INFERRED"
   | "UNKNOWN";
 
 export type ProvenanceStatus =
@@ -67,7 +138,14 @@ export type ClaimCategory =
   | "engineer-designed"
   | "jurisdiction-specific"
   | "common-method"
-  | "educational-simplification";
+  | "educational-simplification"
+  | "building-science-principle";
+
+export type PenetrationRef = {
+  hostId: string;
+  tradeComponentId: string;
+  purpose: string;
+};
 
 export type BuildingComponent = {
   id: string;
@@ -75,6 +153,7 @@ export type BuildingComponent = {
   label: string;
   parentId?: string;
   childIds: string[];
+  trade?: TradeId;
   geometry: GeometryDescriptor;
   material: MaterialDescriptor;
   assembly: {
@@ -86,6 +165,8 @@ export type BuildingComponent = {
     explodeGroup: string;
     explodeVector: Vec3;
     localExplodeVector: Vec3;
+    /** Extra offset used only when explode scope is trade:<id>. Never applied to whole-house explode. */
+    tradeExplodeVector?: Vec3;
   };
   structural?: {
     loadPathRole?: string;
@@ -93,11 +174,18 @@ export type BuildingComponent = {
     supports?: string[];
     required?: boolean;
   };
+  system?: {
+    systemId?: string;
+    nodeId?: string;
+    role?: string;
+  };
+  penetration?: PenetrationRef;
   learning: {
     shortDescription: string;
     purpose: string;
     failureModes?: string[];
     claimCategory?: ClaimCategory;
+    visualization?: string;
   };
   /**
    * Claim authority for this modelled member (verified / demo-only / …).
@@ -111,6 +199,27 @@ export type BuildingComponent = {
   };
   tags?: string[];
   selectable?: boolean;
+};
+
+export type SystemNode = {
+  id: string;
+  componentId: string;
+  kind: string;
+  label: string;
+};
+
+export type SystemConnection = {
+  id: string;
+  from: string;
+  to: string;
+  kind: "supply" | "return" | "drain" | "vent" | "hot" | "cold" | "circuit" | "air-supply" | "air-return" | "exhaust" | "bonding" | "refrigerant" | "condensate";
+};
+
+export type SystemGraph = {
+  id: string;
+  trade: "plumbing" | "electrical" | "hvac";
+  nodes: SystemNode[];
+  connections: SystemConnection[];
 };
 
 /**
@@ -127,4 +236,5 @@ export type BuildingGraph = {
   components: Record<string, BuildingComponent>;
   rootIds: string[];
   assemblies: string[];
+  systems: SystemGraph[];
 };

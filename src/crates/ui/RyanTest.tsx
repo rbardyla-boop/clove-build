@@ -2,21 +2,27 @@ import { useEffect, useMemo, useState } from "react";
 import { useLab } from "@/crates/session/store";
 
 const TESTS = [
-  { id: "A", title: "Orbit", body: "Orbit completely around the house." },
-  { id: "B", title: "Whole explode", body: "Explode the complete building to 100%, then return to 0%." },
-  { id: "C", title: "Local explode", body: "Select an exterior wall and explode only that assembly." },
-  { id: "D", title: "Construction scrub", body: "Scrub construction from bare site to completed framing and backward." },
-  { id: "E", title: "Inspect", body: "Inspect a normal stud, header, floor member and foundation element." },
-  { id: "F", title: "Break It", body: "Enter Break It and remove a designated component around the window opening." },
-  { id: "G", title: "Check locates", body: "Run CHECK and verify the issue is visibly located in 3D." },
-  { id: "H", title: "Restore", body: "Restore the component and verify the result changes." },
-  { id: "I", title: "No bluff", body: "Create a case the prototype cannot determine and confirm it says MISSING or UNCERTAIN rather than bluffing." },
-  { id: "J", title: "Reset", body: "Press RESET and confirm the entire house returns to canonical state." },
+  { id: "A", title: "Orbit finished house", body: "Orbit completely around the completed house." },
+  { id: "B", title: "Scrub construction", body: "Scrub from foundation to finished house and back." },
+  { id: "C", title: "Trade layers", body: "Toggle every trade layer independently (on / ghost / off)." },
+  { id: "D", title: "Whole explode", body: "Explode the complete house, then collapse." },
+  { id: "E", title: "Exterior wall explode", body: "Explode an exterior wall assembly." },
+  { id: "F", title: "Bathroom / service wall", body: "Explode the bathroom wet wall and read the layers." },
+  { id: "G", title: "Plumbing trace", body: "Trace kitchen or bath plumbing to the building drain / source." },
+  { id: "H", title: "Electrical trace", body: "Trace a receptacle, light or device to the electrical panel." },
+  { id: "I", title: "HVAC / exhaust trace", body: "Trace a ventilation or HVAC path." },
+  { id: "J", title: "Hide drywall", body: "Hide finish / x-ray and inspect concealed systems." },
+  { id: "K", title: "Break structure", body: "Break one structural dependency (Break It)." },
+  { id: "L", title: "Break plumbing", body: "Break one plumbing connection, then check topology." },
+  { id: "M", title: "Break electrical", body: "Break one electrical topology connection, then trace." },
+  { id: "N", title: "Whole-house CHECK", body: "Run CHECK and inspect findings by authority class." },
+  { id: "O", title: "Reset", body: "RESET and confirm exact baseline recovery." },
+  { id: "P", title: "Explode after reset", body: "Repeat explode / collapse after reset." },
 ] as const;
 
 type Mark = "PASS" | "FAIL" | "NOTE" | "";
 
-const KEY = "clove.ryan-test.v1";
+const KEY = "clove.ryan-trades-test.v02";
 
 export function RyanTest() {
   const open = useLab((s) => s.showRyanTest);
@@ -43,7 +49,7 @@ export function RyanTest() {
 
   const text = useMemo(() => {
     const lines = [
-      "CLOVE BUILD LAB — RYAN TEST",
+      "CLOVE BUILD LAB — RYAN TRADES TEST",
       `Date: ${new Date().toISOString()}`,
       "",
       ...TESTS.map((t) => {
@@ -58,11 +64,11 @@ export function RyanTest() {
   if (!open) return null;
 
   return (
-    <aside className="lab-drawer" aria-label="Ryan Test">
+    <aside className="lab-drawer" aria-label="Ryan Trades Test">
       <header className="lab-check-head">
         <div>
           <p className="lab-kicker">Human test card</p>
-          <h2>Ryan Test</h2>
+          <h2>Ryan Trades Test</h2>
         </div>
         <button type="button" className="lab-btn" onClick={() => dispatch({ type: "TOGGLE_RYAN_TEST" })}>
           Close

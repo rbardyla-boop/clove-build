@@ -60,7 +60,7 @@ export function Scrubber() {
       />
       <span className="lab-range-ends" aria-hidden="true">
         <span>Foundation</span>
-        <span>Roof</span>
+        <span>Complete</span>
       </span>
     </div>
   );

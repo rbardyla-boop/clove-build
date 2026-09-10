@@ -1,7 +1,7 @@
 {
   "retrieved": "2026-09-10",
   "project": "clove-build-lab",
-  "policy": "Primary official sources only for executable regulatory facts. NBC text is not copied. Unverified details become MISSING_INFORMATION or UNCERTAIN.",
+  "policy": "Primary official sources only for executable regulatory facts. NBC, NPC and CEC text is not copied. Unverified details become MISSING_INFORMATION or UNCERTAIN.",
   "sources": [
     {
       "id": "pei-news-2024-03-08",
@@ -17,7 +17,7 @@
       "title": "Provincial/Territorial adoption",
       "locator": "https://cbhcc-cchcc.ca/en/provincial-territorial-adoption/",
       "kind": "code-development-body",
-      "usedFor": "PEI row: NBC 2020 Energy Performance Tier 1 adopted in full, enforcement 31 March 2024 (table as of August 2024)."
+      "usedFor": "PEI row: NBC 2020 Energy Performance Tier 1 adopted in full, enforcement 31 March 2024 (table as of August 2024). NPC 2020 and NECB 2020 listed as adopted in full from the same date."
     },
     {
       "id": "canlii-ec177-20",
@@ -25,7 +25,7 @@
       "title": "Building Codes Regulations, PEI Reg EC177/20",
       "locator": "https://www.canlii.org/en/pe/laws/regu/pei-reg-ec177-20/latest/pei-reg-ec177-20.html",
       "kind": "secondary-consolidation",
-      "usedFor": "Section 2 adoption wording (NBC 2020 with Schedules A and B; NECB 2020). Not treated as the official Gazette."
+      "usedFor": "Section 2 adoption wording (NBC 2020 with Schedules A and B; NECB 2020). Not treated as the official Gazette. NECB is not assumed as this Part 9 house’s energy path."
     },
     {
       "id": "pei-bca",
@@ -49,7 +49,31 @@
       "title": "Codes Canada publications",
       "locator": "https://nrc.canada.ca/en/certifications-evaluations-standards/codes-canada/codes-canada-publications",
       "kind": "official-agency",
-      "usedFor": "NBC 2025 is published nationally; PEI adoption of 2025 was not verified."
+      "usedFor": "NBC 2025 and NPC 2025 are published nationally; PEI adoption of 2025 was not verified."
+    },
+    {
+      "id": "pei-plumbing-reg",
+      "organization": "Government of Prince Edward Island",
+      "title": "A Code for Plumbing Services Regulations (office consolidation)",
+      "locator": "https://www.princeedwardisland.ca/sites/default/files/legislation/e09-01-environmental_protection_act_a_code_for_plumbing_services_regulations.pdf",
+      "kind": "official-legislation",
+      "usedFor": "Adopts National Plumbing Code of Canada 2020 as amended from time to time, current to 31 March 2024 (EC180/24). PEI additions concern permits. NPC clause text is not encoded."
+    },
+    {
+      "id": "canlii-ec757-18",
+      "organization": "Prince Edward Island via CanLII",
+      "title": "Electrical Inspection and Code Regulations, PEI Reg EC757/18",
+      "locator": "https://www.canlii.org/en/pe/laws/regu/pei-reg-ec757-18/latest/pei-reg-ec757-18.html",
+      "kind": "secondary-consolidation",
+      "usedFor": "Office consolidation current to 5 October 2024. Adopts 2024 Canadian Electrical Code, Part 1, Twenty-sixth Edition, with Schedule 1 PEI amendments. CEC text is not reproduced."
+    },
+    {
+      "id": "csa-cec-pei-ref",
+      "organization": "CSA Group",
+      "title": "Canadian Electrical Code, Part I — Reference in Legislation (PEI)",
+      "locator": "https://www.csagroup.org/standards/areas-of-focus/electrical/canadian-electrical-code-reference-legislation/",
+      "kind": "code-development-body",
+      "usedFor": "Lists PEI Inspection Services; referenced edition 2024 CE Code, Part I; effective October 2024."
     }
   ]
 }

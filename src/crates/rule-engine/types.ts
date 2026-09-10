@@ -1,12 +1,15 @@
-import type { AuthorityCategory } from "@/crates/building-graph/types";
+import type { AuthorityCategory, TradeId } from "@/crates/building-graph/types";
 import type { RuleProvenance } from "@/crates/provenance/types";
 
 export type RuleVerdict = "PASS" | "FAIL" | "MISSING_INFORMATION" | "UNCERTAIN";
+
+export type RuleDomain = TradeId | "cross-trade" | "jurisdiction";
 
 export type RuleEvaluation = {
   ruleId: string;
   title: string;
   verdict: RuleVerdict;
+  domain: RuleDomain;
   componentIds: string[];
   inputs: Record<string, string | number | boolean | null | undefined>;
   reason: string;
@@ -39,9 +42,10 @@ export type Rule = {
   id: string;
   title: string;
   packVersion: string;
+  domain: RuleDomain;
   provenance: RuleProvenance;
   authorityLabel: string;
-  evaluate: (ctx: RuleContext, lookup: RuleLookup) => Omit<RuleEvaluation, "evaluatedAt" | "jurisdiction" | "rulePackVersion" | "ruleId" | "title" | "provenance" | "authorityLabel" | "sourceRefs"> & {
+  evaluate: (ctx: RuleContext, lookup: RuleLookup) => Omit<RuleEvaluation, "evaluatedAt" | "jurisdiction" | "rulePackVersion" | "ruleId" | "title" | "provenance" | "authorityLabel" | "sourceRefs" | "domain"> & {
     sourceRefs?: string[];
   };
 };

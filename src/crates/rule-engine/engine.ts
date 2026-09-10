@@ -45,6 +45,7 @@ export function evaluateRules(
       ruleId: rule.id,
       title: rule.title,
       verdict: result.verdict,
+      domain: rule.domain,
       componentIds: result.componentIds,
       inputs: result.inputs,
       reason: result.reason,

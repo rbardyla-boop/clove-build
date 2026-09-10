@@ -2,9 +2,11 @@ import { clampAmount, type ExplodeScope } from "@/crates/explode/engine";
 import { clampStage, STAGE_MAX, STAGE_MIN } from "@/crates/construction-sequence/stages";
 import { evaluateRules, highlightedIds } from "@/crates/rule-engine/engine";
 import type { RuleEvaluation } from "@/crates/rule-engine/types";
-import type { BuildingGraph } from "@/crates/building-graph/types";
-import { WINDOW_CHALLENGE } from "@/crates/break-it/challenge";
-import type { Command, LabEvent, LabMode } from "./commands";
+import type { BuildingGraph, TradeId } from "@/crates/building-graph/types";
+import { challengeById } from "@/crates/trades/challenges";
+import { defaultTradeLayers, tradeOf, type TradeLayerState } from "@/crates/trades/infer";
+import { traceFromComponent, type TraceKind } from "@/crates/system-graph/trace";
+import type { Command, FlowMode, LabEvent, LabMode, TraceState } from "./commands";
 
 /**
  * v1 session overlay.
@@ -30,9 +32,14 @@ export type LabSnapshot = {
   check: RuleEvaluation[] | null;
   checkHighlights: string[];
   challengeActive: boolean;
+  challengeId: string;
   showDiag: boolean;
   showReceipt: boolean;
   showRyanTest: boolean;
+  tradeLayers: Record<TradeId, TradeLayerState>;
+  flowMode: FlowMode;
+  hideFinish: boolean;
+  trace: TraceState;
   events: LabEvent[];
   seq: number;
   cameraNonce: number;
@@ -57,9 +64,14 @@ export function createSnapshot(graph: BuildingGraph): LabSnapshot {
     check: null,
     checkHighlights: [],
     challengeActive: false,
+    challengeId: "challenge.window-opening",
     showDiag: false,
     showReceipt: false,
     showRyanTest: false,
+    tradeLayers: defaultTradeLayers(),
+    flowMode: "off",
+    hideFinish: false,
+    trace: null,
     events: [],
     seq: 0,
     cameraNonce: 0,
@@ -94,6 +106,7 @@ export function applyCommand(state: LabSnapshot, command: Command, now = Date.no
         selectedId: state.selectedId === command.id ? command.id : state.selectedId,
         check: null,
         checkHighlights: [],
+        trace: null,
       };
     }
     case "RESTORE_COMPONENT":
@@ -102,9 +115,10 @@ export function applyCommand(state: LabSnapshot, command: Command, now = Date.no
         removedIds: state.removedIds.filter((id) => id !== command.id),
         check: null,
         checkHighlights: [],
+        trace: null,
       };
     case "RESTORE_ALL":
-      return { ...base, removedIds: [], check: null, checkHighlights: [] };
+      return { ...base, removedIds: [], check: null, checkHighlights: [], trace: null };
     case "HIDE_COMPONENT":
       if (state.hiddenIds.includes(command.id)) return state;
       return { ...base, hiddenIds: [...state.hiddenIds, command.id] };
@@ -148,21 +162,54 @@ export function applyCommand(state: LabSnapshot, command: Command, now = Date.no
       return { ...base, cameraNonce: state.cameraNonce + 1, cameraCommand: "fit-house" };
     case "FIT_SELECTED":
       return { ...base, cameraNonce: state.cameraNonce + 1, cameraCommand: "fit-selected" };
-    case "SET_CHALLENGE":
+    case "SET_CHALLENGE": {
+      const ch = challengeById(command.challengeId ?? state.challengeId);
       return {
         ...base,
         challengeActive: command.active,
+        challengeId: ch?.id ?? state.challengeId,
         mode: command.active ? "break-it" : state.mode,
-        selectedId: command.active ? WINDOW_CHALLENGE.focusId : state.selectedId,
-        explodeScope: command.active ? WINDOW_CHALLENGE.targetAssembly : state.explodeScope,
+        selectedId: command.active ? (ch?.focusId ?? state.selectedId) : state.selectedId,
+        explodeScope: command.active ? (ch?.targetAssembly ?? state.explodeScope) : state.explodeScope,
         xray: command.active ? true : state.xray,
       };
+    }
     case "TOGGLE_DIAG":
       return { ...base, showDiag: !state.showDiag };
     case "TOGGLE_RECEIPT":
       return { ...base, showReceipt: !state.showReceipt, showRyanTest: false };
     case "TOGGLE_RYAN_TEST":
       return { ...base, showRyanTest: !state.showRyanTest, showReceipt: false };
+    case "SET_TRADE_LAYER":
+      return {
+        ...base,
+        tradeLayers: { ...state.tradeLayers, [command.trade]: command.state },
+      };
+    case "SET_FLOW_MODE":
+      return { ...base, flowMode: command.mode };
+    case "SET_HIDE_FINISH":
+      return { ...base, hideFinish: command.enabled };
+    case "TRACE_FROM": {
+      if (!command.id) return { ...base, trace: null };
+      const c = state.graph.components[command.id];
+      if (!c) return { ...base, trace: null };
+      const trade = tradeOf(c);
+      const kind: TraceKind | null =
+        trade === "plumbing" || trade === "electrical" || trade === "hvac" ? trade : null;
+      if (!kind) return { ...base, trace: null };
+      const walk = traceFromComponent(state.graph, kind, command.id, state.removedIds);
+      return {
+        ...base,
+        trace: {
+          trade: kind,
+          seedId: command.id,
+          componentIds: walk.componentIds,
+          connectionIds: walk.connectionIds,
+        },
+      };
+    }
+    case "CLEAR_TRACE":
+      return { ...base, trace: null };
     default:
       return state;
   }
@@ -175,8 +222,16 @@ export function resetEqualsBaseline(a: LabSnapshot, b: LabSnapshot): boolean {
     a.explodeAmount === 0 &&
     a.constructionStage === STAGE_MAX &&
     a.hiddenIds.length === 0 &&
-    a.isolatedIds === null
+    a.isolatedIds === null &&
+    a.trace === null &&
+    a.hideFinish === false &&
+    a.flowMode === "off" &&
+    TRADE_LAYER_ON(a.tradeLayers)
   );
+}
+
+function TRADE_LAYER_ON(layers: Record<TradeId, TradeLayerState>): boolean {
+  return Object.values(layers).every((s) => s === "on");
 }
 
 export { STAGE_MIN, STAGE_MAX };

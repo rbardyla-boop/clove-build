@@ -15,6 +15,13 @@ const TEST_FILES = [
   "src/crates/session/apply.test.ts",
   "src/crates/rule-engine/engine.test.ts",
   "src/crates/observation/seams.test.ts",
+  "src/crates/system-graph/trace.test.ts",
+  "src/crates/clash/engine.test.ts",
+  "src/crates/trades/house.test.ts",
+  "src/crates/session/reset-invariant.test.ts",
+  "src/crates/session/chaos.test.ts",
+  "src/crates/session/isolation.test.ts",
+  "src/crates/rule-engine/authority.test.ts",
 ];
 
 const result = spawnSync(

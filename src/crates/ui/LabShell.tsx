@@ -9,6 +9,7 @@ import { Hint } from "./Hint";
 import { Inspector } from "./Inspector";
 import { RyanTest } from "./RyanTest";
 import { Scrubber } from "./Scrubber";
+import { SystemsPanel } from "./SystemsPanel";
 import { Toolbar } from "./Toolbar";
 import { TopBar } from "./TopBar";
 
@@ -82,6 +83,7 @@ export function LabShell() {
       <TopBar />
       <div className="lab-main">
         {Viewport ? <Viewport /> : <div className="lab-stage lab-stage-boot">Loading laboratory…</div>}
+        <SystemsPanel />
         <Inspector />
         <Hint />
         <ChallengeBanner />

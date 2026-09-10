@@ -25,7 +25,7 @@ export function TopBar() {
           Fit
         </button>
         <button type="button" className="lab-btn" onClick={() => dispatch({ type: "TOGGLE_RYAN_TEST" })}>
-          Ryan Test
+          Ryan Trades Test
         </button>
         <button type="button" className="lab-btn" onClick={() => dispatch({ type: "TOGGLE_RECEIPT" })}>
           Build Receipt
