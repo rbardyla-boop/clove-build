@@ -36,13 +36,16 @@ function isVertical(c: BuildingComponent): boolean {
   return sy >= 0.4 && sy >= Math.max(sx, sz) * 1.4;
 }
 
-function isOccupiedUse(c: BuildingComponent): boolean {
-  return c.type === "fixture" || c.type === "trap" || (c.tags ?? []).includes("fixture");
+function isFixtureOrCabinetTrap(c: BuildingComponent): boolean {
+  if (c.type === "fixture" || (c.tags ?? []).includes("fixture")) return true;
+  if (c.type !== "trap") return false;
+  const tags = c.tags ?? [];
+  return tags.includes("cabinet-trap") || tags.includes("fixture-trap");
 }
 
 function nearWall(c: BuildingComponent, env: EnvelopeBounds): boolean {
-  // Fixtures and traps live in occupied / cabinet space. Only stub-outs belong in the wall.
-  if (isOccupiedUse(c)) return false;
+  // Fixture bowls and cabinet traps live in occupied space. Other traps classify from geometry.
+  if (isFixtureOrCabinetTrap(c)) return false;
   const [x, , z] = c.geometry.center;
   const [sx, , sz] = c.geometry.size;
   if (sx <= 0.22 && (x - env.xMin <= WALL_CAVITY_M || env.xMax - x <= WALL_CAVITY_M)) return true;

@@ -24,6 +24,8 @@ const TEST_FILES = [
   "src/crates/rule-engine/authority.test.ts",
   "src/crates/shadow-pack/shadow.test.ts",
   "src/crates/space-model/space.test.ts",
+  "src/crates/geometry/run.test.ts",
+  "src/crates/clash/containment.test.ts",
   "src/crates/routing/routing.test.ts",
   "src/crates/search/search.test.ts",
   "src/crates/code-watch/watch.test.ts",

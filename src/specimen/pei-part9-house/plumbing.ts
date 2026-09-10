@@ -2,6 +2,7 @@ import type { MaterialDescriptor, SystemConnection, Vec3 } from "@/crates/buildi
 import { addAssembly, addBox, MAT, PROV_EDU, segmentBox } from "./helper";
 import { P, Y, halfL, halfW } from "./params";
 import type { Registry } from "./registry";
+import { linearRun } from "@/crates/geometry/run";
 
 const COLD = 0.022;
 const HOT = 0.022;
@@ -45,6 +46,7 @@ function pipe(
     visualization: "SCHEMATIC FLOW",
     provenance: PROV_EDU,
     system: { systemId: "system.plumbing", nodeId: id, role: type },
+    run: linearRun(a, b),
     dependencies: ["slab.basement", "assembly.wall.bath"],
   });
 }
@@ -241,7 +243,7 @@ export function addPlumbing(reg: Registry) {
     explodeGroup: "assembly.wall.bath",
     explodeVector: [1.3, 0.2, 0],
     localExplodeVector: [0.4, 0.1, 0],
-    tags: ["plumbing", "dwv", "bath"],
+    tags: ["plumbing", "dwv", "bath", "fixture-trap"],
     short: "P-trap under the lavatory.",
     purpose: "Hold a water seal on the lavatory waste. This is an educational topology object, not an NPC clause.",
     visualization: "SCHEMATIC FLOW",
@@ -280,7 +282,7 @@ export function addPlumbing(reg: Registry) {
     explodeGroup: "assembly.wall.front",
     explodeVector: [0, 0.3, 1.6],
     localExplodeVector: [0, 0.15, 0.45],
-    tags: ["plumbing", "dwv", "kitchen"],
+    tags: ["plumbing", "dwv", "kitchen", "cabinet-trap"],
     short: "P-trap under the kitchen sink.",
     purpose: "Hold a water seal on the kitchen waste.",
     visualization: "SCHEMATIC FLOW",
@@ -382,6 +384,25 @@ export function addPlumbing(reg: Registry) {
     short: "Opening where the stack passes the floor plate.",
     purpose: "Record the host/trade relationship of a service penetration.",
     penetration: { hostId: "assembly.wall.bath.plate.bottom", tradeComponentId: "plumbing.dwv.stack.001", purpose: "dwv-stack" },
+    dependencies: ["plumbing.dwv.stack.001"],
+  });
+  addBox(reg, {
+    id: "penetration.wall.bath.plumbing.004",
+    type: "penetration",
+    label: "Stack top-plate penetration",
+    parentId: "assembly.wall.bath",
+    trade: "plumbing",
+    center: [stackX, Y.wallTop - P.plate, stackZ],
+    size: [0.12, 0.1, 0.12],
+    material: MAT.wood,
+    stage: 15,
+    explodeGroup: "assembly.wall.bath",
+    explodeVector: [1.5, 0.4, 0],
+    tags: ["plumbing", "penetration", "bath"],
+    short: "Opening where the stack passes the wet-wall top plate.",
+    purpose: "The stack continues through the double top plate into the attic/vent. That opening is a modelled host/trade pair.",
+    penetration: { hostId: "assembly.wall.bath.plate.top", tradeComponentId: "plumbing.dwv.stack.001", purpose: "dwv-stack" },
+    dependencies: ["plumbing.dwv.stack.001"],
   });
 
   // Vents — kitchen vent rises at the fixture wall, then crosses in the attic, not through the room.

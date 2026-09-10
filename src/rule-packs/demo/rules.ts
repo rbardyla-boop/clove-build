@@ -1,7 +1,9 @@
 import type { Rule } from "@/crates/rule-engine/types";
 import { reachable } from "@/crates/system-graph/trace";
 import { findClashes } from "@/crates/clash/engine";
+import { evaluateWetWallFit } from "@/crates/clash/containment";
 import { findRoutingIssues } from "@/crates/routing/engine";
+import { classifyDwvRun } from "@/crates/geometry/run";
 import { buildPeiHouse } from "@/specimen/pei-part9-house";
 
 const DEMO = {
@@ -644,34 +646,34 @@ export const demoRules: Rule[] = [
     authorityLabel: "Clove educational demonstration rule — cavity vs pipe, not NPC fittings",
     evaluate: (ctx) => {
       const graph = graphFor(ctx);
-      const wall = graph.components["assembly.wall.bath"];
-      const stack = graph.components["plumbing.dwv.stack.001"];
-      if (!wall || !stack) {
+      const fit = evaluateWetWallFit(graph);
+      if (!fit.contained) {
         return {
-          verdict: "MISSING_INFORMATION",
-          componentIds: [],
-          inputs: { wall: Boolean(wall), stack: Boolean(stack) },
-          reason: "Wet wall or soil stack is not in the graph.",
-        };
-      }
-      const wallDepth = Math.min(wall.geometry.size[0], wall.geometry.size[2]);
-      const stackDia = Math.min(stack.geometry.size[0], stack.geometry.size[2]);
-      const leftover = wallDepth - stackDia;
-      if (leftover >= 0.02) {
-        return {
-          verdict: "PASS",
-          componentIds: [wall.id, stack.id],
-          inputs: { wallDepthMm: Math.round(wallDepth * 1000), stackDiaMm: Math.round(stackDia * 1000), leftoverMm: Math.round(leftover * 1000) },
-          reason: "The bathroom wet wall is a 2×6 (140 mm) plumbing wall. The modelled 75 mm stack fits the cavity with leftover depth. Fittings, firestopping and insulation are not modelled.",
-          assumption: "Cavity-versus-pipe is not a substitute for a fitting layout.",
+          verdict: "FAIL",
+          componentIds: ["assembly.wall.bath", "plumbing.dwv.stack.001", ...fit.hostHits].slice(0, 12),
+          inputs: {
+            contained: false,
+            leftoverMm: fit.leftoverMm,
+            wallDepthMm: fit.wallDepthMm,
+            stackDiaMm: fit.stackDiaMm,
+            hostHits: fit.hostHits.length,
+          },
+          reason: fit.reason,
+          assumption: "Clipped-stack containment is not a substitute for a fitting layout or firestopping.",
         };
       }
       return {
-        verdict: "FAIL",
-        componentIds: [wall.id, stack.id],
-        inputs: { wallDepthMm: Math.round(wallDepth * 1000), stackDiaMm: Math.round(stackDia * 1000), leftoverMm: Math.round(leftover * 1000) },
-        reason: "The wet wall is thinner than the soil stack plus a 20 mm leftover. A 2×4 (89 mm) wall is not a credible host for a 75 mm stack.",
-        assumption: "This is a physical-fit check on modelled boxes, not an NPC clause.",
+        verdict: "PASS",
+        componentIds: ["assembly.wall.bath", "plumbing.dwv.stack.001"],
+        inputs: {
+          contained: true,
+          leftoverMm: fit.leftoverMm,
+          wallDepthMm: fit.wallDepthMm,
+          stackDiaMm: fit.stackDiaMm,
+          hostHits: 0,
+        },
+        reason: fit.reason,
+        assumption: "Fittings, firestopping and insulation are not modelled.",
       };
     },
   },
@@ -690,21 +692,36 @@ export const demoRules: Rule[] = [
     evaluate: (ctx) => {
       const graph = graphFor(ctx);
       const level: string[] = [];
+      const sloped: string[] = [];
+      const unmodelled: string[] = [];
+      let sampleFall: number | null = null;
+      let sampleHoriz: number | null = null;
       for (const c of Object.values(graph.components)) {
-        if (c.type !== "pipe-dwv") continue;
-        const [sx, sy, sz] = c.geometry.size;
-        const horiz = Math.max(sx, sz);
-        if (horiz < 0.5) continue;
-        if (horiz < sy * 1.5) continue;
-        level.push(c.id);
+        const ev = classifyDwvRun(c);
+        if (ev.kind === "level") level.push(c.id);
+        else if (ev.kind === "sloped") {
+          sloped.push(c.id);
+          sampleFall = ev.fall;
+          sampleHoriz = ev.horiz;
+        } else if (ev.kind === "unmodelled") unmodelled.push(c.id);
       }
+      const ids = [...level, ...unmodelled, ...sloped];
       return {
         verdict: "MISSING_INFORMATION",
-        componentIds: level,
-        inputs: { levelRuns: level.length, modelledFall: null, typicalEducationalFall: "1 in 50, not encoded" },
+        componentIds: ids,
+        inputs: {
+          levelRuns: level.length,
+          slopedRuns: sloped.length,
+          unmodelledRuns: unmodelled.length,
+          sampleFall,
+          sampleHoriz,
+          detector: "endpoint-elevation",
+        },
         reason:
-          "Horizontal DWV runs are modelled level. Fall/slope is not in the graph, so these drains are not verified as buildable. Topology (what connects to what) is still a project fact; grade is not.",
-        assumption: "A level box is not a 1-in-50 drain.",
+          sloped.length > 0 && level.length === 0 && unmodelled.length === 0
+            ? "Horizontal DWV runs store start/end elevation and flow direction, but NPC minimum fall is not licensed to evaluate. Topology is a project fact; grade is not a verified installation."
+            : "Horizontal DWV runs are modelled level (start elevation equals end elevation). Fall is therefore not a verified installation. Topology (what connects to what) is still a project fact.",
+        assumption: "A level run, or an unlicensed slope number, is not a 1-in-50 drain.",
       };
     },
   },

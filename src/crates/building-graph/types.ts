@@ -147,6 +147,13 @@ export type PenetrationRef = {
   purpose: string;
 };
 
+/** Axis endpoints of a modelled service run. Flow travels from `from` toward `to`. */
+export type LinearRun = {
+  from: Vec3;
+  to: Vec3;
+  flow: "from-to";
+};
+
 export type BuildingComponent = {
   id: string;
   type: ComponentType;
@@ -179,6 +186,8 @@ export type BuildingComponent = {
     nodeId?: string;
     role?: string;
   };
+  /** Endpoint geometry for linear services. Bounding boxes are not slope evidence. */
+  run?: LinearRun;
   penetration?: PenetrationRef;
   learning: {
     shortDescription: string;

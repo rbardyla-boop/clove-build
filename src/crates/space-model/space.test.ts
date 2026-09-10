@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { buildPeiHouse } from "../../specimen/pei-part9-house/index.ts";
+import { Y } from "../../specimen/pei-part9-house/params.ts";
 import { classifyComponent } from "./classify.ts";
 import { SPACE_ZONES } from "./zones.ts";
 
@@ -39,15 +40,32 @@ describe("space model", () => {
   });
 
   it("classifies bathroom fixtures as occupied, not wall cavity", () => {
-    for (const id of [
-      "plumbing.fixture.toilet.bath",
-      "plumbing.fixture.sink.bath",
-      "plumbing.fixture.tub.bath",
-      "plumbing.dwv.trap.kitchen.001",
-    ]) {
+    for (const id of ["plumbing.fixture.toilet.bath", "plumbing.fixture.sink.bath", "plumbing.fixture.tub.bath"]) {
       const z = classifyComponent(graph, graph.components[id]!);
       assert.equal(z, "OCCUPIED_ROOM", `${id} in ${z}`);
     }
+  });
+
+  it("forces only cabinet/fixture traps into occupied space", () => {
+    assert.equal(classifyComponent(graph, graph.components["plumbing.dwv.trap.kitchen.001"]!), "OCCUPIED_ROOM");
+    assert.equal(classifyComponent(graph, graph.components["plumbing.dwv.trap.lav.001"]!), "OCCUPIED_ROOM");
+  });
+
+  it("classifies an untagged wall-hosted trap from geometry, not as occupied-by-type", () => {
+    const proto = graph.components["plumbing.dwv.trap.tub.001"]!;
+    const wallTrap = {
+      ...proto,
+      id: "synthetic.trap.wall",
+      parentId: "assembly.wall.bath",
+      tags: ["plumbing", "dwv"],
+      geometry: {
+        kind: "box" as const,
+        center: [-2.25, (Y.floorTop + Y.wallTop) / 2, -1.35] as [number, number, number],
+        size: [0.08, 0.12, 0.08] as [number, number, number],
+      },
+    };
+    const z = classifyComponent(graph, wallTrap);
+    assert.equal(z, "WALL_CAVITY", z);
   });
 
   it("still classifies the soil stack as shaft / wall cavity", () => {

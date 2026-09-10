@@ -128,6 +128,8 @@ export type LabMaterials = {
   issue: THREE.LineBasicMaterial;
   trace: THREE.LineBasicMaterial;
   ghost: THREE.MeshStandardMaterial;
+  ghostFaint: THREE.MeshStandardMaterial;
+  ghostHost: THREE.MeshStandardMaterial;
   flowCold: THREE.MeshStandardMaterial;
   flowHot: THREE.MeshStandardMaterial;
   flowDrain: THREE.MeshStandardMaterial;
@@ -183,22 +185,36 @@ export function createLabMaterials(): LabMaterials {
   const ghost = new THREE.MeshStandardMaterial({
     color: "#d9d2c5",
     transparent: true,
-    opacity: 0.12,
+    opacity: 0.16,
     depthWrite: false,
     roughness: 0.9,
+  });
+  const ghostFaint = new THREE.MeshStandardMaterial({
+    color: "#cfc8bb",
+    transparent: true,
+    opacity: 0.045,
+    depthWrite: false,
+    roughness: 0.95,
+  });
+  const ghostHost = new THREE.MeshStandardMaterial({
+    color: "#c4a070",
+    transparent: true,
+    opacity: 0.32,
+    depthWrite: false,
+    roughness: 0.82,
   });
   const flow = (color: string) =>
     new THREE.MeshStandardMaterial({
       color,
       emissive: color,
-      emissiveIntensity: 0.55,
-      roughness: 0.4,
-      metalness: 0.1,
+      emissiveIntensity: 0.85,
+      roughness: 0.38,
+      metalness: 0.12,
     });
 
   const all = [
     woodMat, treated, brace, conc, osbMat, soilMat, grass, copper, plastic, metal,
-    insulation, gypsum, membrane, cladding, roofing, paint, cable, ghost,
+    insulation, gypsum, membrane, cladding, roofing, paint, cable, ghost, ghostFaint, ghostHost,
   ];
   for (const m of all) {
     m.clippingPlanes = [];
@@ -243,6 +259,8 @@ export function createLabMaterials(): LabMaterials {
     issue: new THREE.LineBasicMaterial({ color: "#b55233", transparent: true, opacity: 0.95 }),
     trace: new THREE.LineBasicMaterial({ color: "#d4a017", transparent: true, opacity: 0.95 }),
     ghost,
+    ghostFaint,
+    ghostHost,
     flowCold,
     flowHot,
     flowDrain,

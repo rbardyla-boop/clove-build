@@ -1,4 +1,4 @@
-import type { ComponentType, MaterialDescriptor, TradeId, Vec3 } from "@/crates/building-graph/types";
+import type { ComponentType, LinearRun, MaterialDescriptor, TradeId, Vec3 } from "@/crates/building-graph/types";
 import type { Draft, Registry } from "./registry";
 import { MAT, PROV_EDU, PROV_MODEL, PROV_SCIENCE } from "./materials";
 
@@ -48,6 +48,7 @@ export function addBox(
     purpose: string;
     visualization?: string;
     system?: Draft["system"];
+    run?: LinearRun;
     penetration?: Draft["penetration"];
     provenance?: Draft["provenance"];
     structural?: Draft["structural"];
@@ -72,6 +73,7 @@ export function addBox(
     },
     structural: opts.structural,
     system: opts.system,
+    run: opts.run,
     penetration: opts.penetration,
     learning: {
       ...learn(opts.short, opts.purpose),

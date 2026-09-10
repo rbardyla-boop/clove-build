@@ -71,7 +71,7 @@ export class HouseLab {
     this.scene.fog = new THREE.Fog(0xc5cdd4, 38, 88);
 
     this.camera = new THREE.PerspectiveCamera(40, 1, 0.08, 140);
-    this.camera.position.set(15.5, 8.6, 17.5);
+    this.camera.position.set(13.2, 6.8, 14.8);
 
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = !this.reducedMotion;
@@ -80,7 +80,7 @@ export class HouseLab {
     this.controls.minPolarAngle = 0.08;
     this.controls.minDistance = 2.4;
     this.controls.maxDistance = 56;
-    this.controls.target.set(0, 1.35, 0);
+    this.controls.target.set(0, 1.05, 0);
     this.controls.update();
 
     this.clipPlane = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0);
@@ -221,10 +221,34 @@ export class HouseLab {
       const isXray = state.xray && xrayTypes.has(c.type);
       const flowMat = flowMaterial(c, state, this.mats);
       const base = flowMat ?? materialFor(c.material.family, this.mats);
+      const service =
+        c.type.startsWith("pipe-") ||
+        c.type === "cable" ||
+        c.type === "duct" ||
+        c.type === "trap" ||
+        c.type === "fixture" ||
+        c.type === "terminal" ||
+        c.type === "device-box" ||
+        c.type === "receptacle" ||
+        c.type === "switch" ||
+        c.type === "luminaire" ||
+        c.type === "panel";
       if (traced.has(id)) {
         mesh.material = this.mats.flowLive;
         mesh.castShadow = false;
-      } else if (!isIso || isXray || layer === "ghost") {
+      } else if (flowMat) {
+        mesh.material = flowMat;
+        mesh.castShadow = false;
+      } else if (state.flowMode !== "off") {
+        mesh.material = this.mats.ghostFaint;
+        mesh.castShadow = false;
+      } else if (isXray) {
+        mesh.material = this.mats.ghostFaint;
+        mesh.castShadow = false;
+      } else if (state.xray && (trade === "structure" || trade === "foundation") && !service) {
+        mesh.material = this.mats.ghostHost;
+        mesh.castShadow = false;
+      } else if (!isIso || layer === "ghost") {
         mesh.material = this.mats.ghost;
         mesh.castShadow = false;
       } else {
@@ -315,7 +339,7 @@ export class HouseLab {
   }
 
   fitHouse() {
-    this.animateCamera(new THREE.Vector3(15.5, 8.6, 17.5), new THREE.Vector3(0, 1.35, 0));
+    this.animateCamera(new THREE.Vector3(13.2, 6.8, 14.8), new THREE.Vector3(0, 1.05, 0));
   }
 
   resetCamera() {
@@ -481,8 +505,7 @@ function flowMaterial(c: BuildingComponent, state: LabSnapshot, mats: LabMateria
     return mats.flowAir;
   }
   if (state.flowMode !== "off") {
-    const t = tradeOf(c);
-    if (t === "structure" || t === "foundation" || t === "finish") return mats.ghost;
+    return mats.ghostFaint;
   }
   return null;
 }
