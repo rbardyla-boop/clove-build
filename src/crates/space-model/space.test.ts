@@ -33,6 +33,28 @@ describe("space model", () => {
     assert.equal(z, "EXTERIOR");
   });
 
+  it("classifies kitchen sink as occupied / cabinet space, not wall cavity", () => {
+    const z = classifyComponent(graph, graph.components["plumbing.fixture.sink.kitchen"]!);
+    assert.equal(z, "OCCUPIED_ROOM");
+  });
+
+  it("classifies bathroom fixtures as occupied, not wall cavity", () => {
+    for (const id of [
+      "plumbing.fixture.toilet.bath",
+      "plumbing.fixture.sink.bath",
+      "plumbing.fixture.tub.bath",
+      "plumbing.dwv.trap.kitchen.001",
+    ]) {
+      const z = classifyComponent(graph, graph.components[id]!);
+      assert.equal(z, "OCCUPIED_ROOM", `${id} in ${z}`);
+    }
+  });
+
+  it("still classifies the soil stack as shaft / wall cavity", () => {
+    const z = classifyComponent(graph, graph.components["plumbing.dwv.stack.001"]!);
+    assert.ok(z === "SHAFT" || z === "WALL_CAVITY", z);
+  });
+
   it("exposes the zone vocabulary", () => {
     assert.ok(SPACE_ZONES.includes("OCCUPIED_ROOM"));
     assert.ok(SPACE_ZONES.includes("WALL_CAVITY"));

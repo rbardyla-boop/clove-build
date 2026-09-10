@@ -24,18 +24,20 @@ export function addInterior(reg: Registry) {
   });
 
   const bathX = -2.25;
+  // 2×6 plumbing wall: a 75 mm stack does not physically fit a 2×4 (89 mm) cavity once fittings exist.
+  const bathStud = LUMBER["2x6"];
   addAssembly(reg, {
     id: "assembly.wall.bath",
     label: "Bathroom wet wall (interior)",
     trade: "structure",
     center: [bathX, (Y.floorTop + Y.wallTop) / 2, -1.1],
-    size: [0.09, Y.wallTop - Y.floorTop, 4.4],
+    size: [bathStud.d, Y.wallTop - Y.floorTop, 4.4],
     stage: 8,
     dependencies: ["subfloor.0"],
     explodeVector: [1.6, 0.4, 0],
-    short: "Interior partition that hosts the bathroom plumbing wall.",
-    purpose: "Create a wet wall cavity for supply, DWV and vent without inventing a second house.",
-    tags: ["wall", "interior", "bath"],
+    short: "2×6 interior plumbing wall that hosts the bathroom wet services.",
+    purpose: "Give the 75 mm soil stack a 140 mm cavity. A 2×4 wet wall is not a credible host for that stack.",
+    tags: ["wall", "interior", "bath", "plumbing-wall"],
   });
 
   addBox(reg, {
@@ -45,15 +47,15 @@ export function addInterior(reg: Registry) {
     parentId: "assembly.wall.bath",
     trade: "structure",
     center: [bathX, Y.floorTop + P.plate / 2, -1.1],
-    size: [P.stud.t, P.plate, 4.4],
+    size: [bathStud.d, P.plate, 4.4],
     material: MAT.wood,
     stage: 8,
     explodeGroup: "assembly.wall.bath",
     explodeVector: [1.6, 0.2, 0],
     localExplodeVector: [0, -0.2, 0],
-    tags: ["wall", "bath"],
-    short: "Bottom plate of the bathroom partition.",
-    purpose: "Anchor the wet wall to the floor deck.",
+    tags: ["wall", "bath", "plumbing-wall"],
+    short: "Bottom plate of the 2×6 bathroom plumbing wall.",
+    purpose: "Anchor the wet wall to the floor deck. Depth matches the 2×6 studs.",
     dependencies: ["subfloor.0"],
   });
 
@@ -68,15 +70,15 @@ export function addInterior(reg: Registry) {
       parentId: "assembly.wall.bath",
       trade: "structure",
       center: [bathX, studY, z],
-      size: [P.stud.d, studH, P.stud.t],
+      size: [bathStud.d, studH, bathStud.t],
       material: MAT.wood,
       stage: 8,
       explodeGroup: "assembly.wall.bath",
       explodeVector: [1.6, 0.3, (i - 3.5) * 0.12],
       localExplodeVector: [0.25, 0, (i - 3.5) * 0.08],
-      tags: ["wall", "bath"],
-      short: "A 2×4 stud in the bathroom partition.",
-      purpose: "Frame the wet wall and leave bays for plumbing.",
+      tags: ["wall", "bath", "plumbing-wall"],
+      short: "A 2×6 stud in the bathroom plumbing wall.",
+      purpose: "Frame the wet wall at 2×6 so the stack has a cavity, and leave bays for supply and vent.",
       dependencies: ["assembly.wall.bath.plate.bottom"],
     });
   }
@@ -88,15 +90,15 @@ export function addInterior(reg: Registry) {
     parentId: "assembly.wall.bath",
     trade: "structure",
     center: [bathX, Y.wallTop - P.plate, -1.1],
-    size: [P.stud.t, P.plate * 2, 4.4],
+    size: [bathStud.d, P.plate * 2, 4.4],
     material: MAT.wood,
     stage: 8,
     explodeGroup: "assembly.wall.bath",
     explodeVector: [1.6, 0.55, 0],
     localExplodeVector: [0, 0.3, 0],
-    tags: ["wall", "bath"],
-    short: "Double top plate of the bathroom partition.",
-    purpose: "Tie the wet wall to the ceiling plane.",
+    tags: ["wall", "bath", "plumbing-wall"],
+    short: "Double top plate of the 2×6 bathroom plumbing wall.",
+    purpose: "Tie the wet wall to the ceiling plane. Depth matches the 2×6 studs.",
     dependencies: ["assembly.wall.bath.stud.00"],
   });
 

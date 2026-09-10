@@ -18,7 +18,7 @@ describe("rule authority gauntlet", () => {
   it("never invents NPC, CEC or NBC clause PASS when data is absent", () => {
     const results = run();
     const guarded = results.filter((r) =>
-      ["NBC-SNOW-001", "PLUMB-NPC-TEXT-001", "ELEC-CEC-TEXT-001", "PEI-ENERGY-PATH-001", "PEI-NPC2025-001", "PEI-NBC2025-001", "JOIST-BORE-001", "HVAC-HUNG-001"].includes(
+      ["NBC-SNOW-001", "PLUMB-NPC-TEXT-001", "ELEC-CEC-TEXT-001", "PEI-ENERGY-PATH-001", "PEI-NPC2025-001", "PEI-NBC2025-001", "JOIST-BORE-001", "HVAC-HUNG-001", "DWV-SLOPE-001"].includes(
         r.ruleId,
       ),
     );
@@ -53,6 +53,8 @@ describe("rule authority gauntlet", () => {
     assert.equal(results.find((r) => r.ruleId === "CROSS-ROUTE-002")!.verdict, "PASS");
     assert.equal(results.find((r) => r.ruleId === "JOIST-BORE-001")!.verdict, "MISSING_INFORMATION");
     assert.equal(results.find((r) => r.ruleId === "HVAC-HUNG-001")!.verdict, "MISSING_INFORMATION");
+    assert.equal(results.find((r) => r.ruleId === "DWV-SLOPE-001")!.verdict, "MISSING_INFORMATION");
+    assert.equal(results.find((r) => r.ruleId === "WET-WALL-001")!.verdict, "PASS");
   });
 
   it("AI_INFERRED is never a PASS", () => {

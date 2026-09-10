@@ -30,4 +30,6 @@ Failures found during construction and the permanent detector for each.
 | ROUTE-006: kitchen vent riser occupied window W2 | MECHANISM | Rise offset to king-stud bay east of W2; clash engine treats window/door units as solid hosts |
 | FRAME-001: kitchen return wall was one 3.4 m lumber slab | CONCEPT | Real 2×4 studs at 16″ o.c. with plates |
 | JOIST-BORE-001: L-routed cables look installable but bores are not modelled | CONCEPT | `joist-bore-unverified` tag; Check returns MISSING_INFORMATION (location/diameter/remaining wood/protection unknown) |
-| HVAC-HUNG-001: basement trunks hung below joists without clearance proof | CONCEPT | Check returns MISSING_INFORMATION for strap spacing / headroom / sizing |
+| SPACE-002: kitchen sink classified as wall cavity because explodeGroup was occupancy | MECHANISM | Fixtures/traps never inherit WALL_CAVITY from explode grouping; they are OCCUPIED_ROOM |
+| WET-WALL-001: 90 mm wet wall hosting a 75 mm stack | MECHANISM | Bathroom plumbing wall is 2×6 (140 mm); cavity-vs-pipe PASS requires ≥20 mm leftover |
+| DWV-SLOPE-001: under-floor waste runs modelled dead-level | CONCEPT | Horizontal pipe-dwv → MISSING_INFORMATION (fall not in the graph; not a buildable drain) |

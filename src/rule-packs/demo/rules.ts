@@ -636,6 +636,79 @@ export const demoRules: Rule[] = [
     },
   },
   {
+    id: "WET-WALL-001",
+    title: "Wet wall cavity is deep enough for the soil stack",
+    packVersion: DEMO_PACK_VERSION,
+    domain: "cross-trade",
+    provenance: DEMO,
+    authorityLabel: "Clove educational demonstration rule — cavity vs pipe, not NPC fittings",
+    evaluate: (ctx) => {
+      const graph = graphFor(ctx);
+      const wall = graph.components["assembly.wall.bath"];
+      const stack = graph.components["plumbing.dwv.stack.001"];
+      if (!wall || !stack) {
+        return {
+          verdict: "MISSING_INFORMATION",
+          componentIds: [],
+          inputs: { wall: Boolean(wall), stack: Boolean(stack) },
+          reason: "Wet wall or soil stack is not in the graph.",
+        };
+      }
+      const wallDepth = Math.min(wall.geometry.size[0], wall.geometry.size[2]);
+      const stackDia = Math.min(stack.geometry.size[0], stack.geometry.size[2]);
+      const leftover = wallDepth - stackDia;
+      if (leftover >= 0.02) {
+        return {
+          verdict: "PASS",
+          componentIds: [wall.id, stack.id],
+          inputs: { wallDepthMm: Math.round(wallDepth * 1000), stackDiaMm: Math.round(stackDia * 1000), leftoverMm: Math.round(leftover * 1000) },
+          reason: "The bathroom wet wall is a 2×6 (140 mm) plumbing wall. The modelled 75 mm stack fits the cavity with leftover depth. Fittings, firestopping and insulation are not modelled.",
+          assumption: "Cavity-versus-pipe is not a substitute for a fitting layout.",
+        };
+      }
+      return {
+        verdict: "FAIL",
+        componentIds: [wall.id, stack.id],
+        inputs: { wallDepthMm: Math.round(wallDepth * 1000), stackDiaMm: Math.round(stackDia * 1000), leftoverMm: Math.round(leftover * 1000) },
+        reason: "The wet wall is thinner than the soil stack plus a 20 mm leftover. A 2×4 (89 mm) wall is not a credible host for a 75 mm stack.",
+        assumption: "This is a physical-fit check on modelled boxes, not an NPC clause.",
+      };
+    },
+  },
+  {
+    id: "DWV-SLOPE-001",
+    title: "Horizontal DWV fall is not modelled",
+    packVersion: DEMO_PACK_VERSION,
+    domain: "plumbing",
+    provenance: {
+      authority: "TRADE_PRACTICE",
+      sourceIds: ["clove-demo-pack"],
+      wording: "executable-logic-only",
+      verification: "unverified",
+    },
+    authorityLabel: "Plausible topology — not a verified drain installation",
+    evaluate: (ctx) => {
+      const graph = graphFor(ctx);
+      const level: string[] = [];
+      for (const c of Object.values(graph.components)) {
+        if (c.type !== "pipe-dwv") continue;
+        const [sx, sy, sz] = c.geometry.size;
+        const horiz = Math.max(sx, sz);
+        if (horiz < 0.5) continue;
+        if (horiz < sy * 1.5) continue;
+        level.push(c.id);
+      }
+      return {
+        verdict: "MISSING_INFORMATION",
+        componentIds: level,
+        inputs: { levelRuns: level.length, modelledFall: null, typicalEducationalFall: "1 in 50, not encoded" },
+        reason:
+          "Horizontal DWV runs are modelled level. Fall/slope is not in the graph, so these drains are not verified as buildable. Topology (what connects to what) is still a project fact; grade is not.",
+        assumption: "A level box is not a 1-in-50 drain.",
+      };
+    },
+  },
+  {
     id: "PEI-ENERGY-PATH-001",
     title: "Which energy path applies to this Part 9 house",
     packVersion: DEMO_PACK_VERSION,

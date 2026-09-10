@@ -111,6 +111,15 @@ describe("integrated trades house", () => {
     assert.ok(studs.every((s) => s.geometry.size[0] < 0.1), "a stud is not a 3 m panel");
   });
 
+  it("bathroom wet wall is 2×6 so the soil stack has a cavity", () => {
+    const wall = graph.components["assembly.wall.bath"]!;
+    const stack = graph.components["plumbing.dwv.stack.001"]!;
+    const wallDepth = Math.min(wall.geometry.size[0], wall.geometry.size[2]);
+    const stackDia = Math.min(stack.geometry.size[0], stack.geometry.size[2]);
+    assert.ok(wallDepth >= 0.13, `wet wall depth ${wallDepth}`);
+    assert.ok(wallDepth - stackDia >= 0.02, `leftover ${wallDepth - stackDia}`);
+  });
+
   it("bath cable is L-shaped in the floor, not a room diagonal", () => {
     const a = graph.components["electrical.cable.bath.001"]!;
     const b = graph.components["electrical.cable.bath.001b"]!;

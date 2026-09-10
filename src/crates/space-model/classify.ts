@@ -36,14 +36,20 @@ function isVertical(c: BuildingComponent): boolean {
   return sy >= 0.4 && sy >= Math.max(sx, sz) * 1.4;
 }
 
+function isOccupiedUse(c: BuildingComponent): boolean {
+  return c.type === "fixture" || c.type === "trap" || (c.tags ?? []).includes("fixture");
+}
+
 function nearWall(c: BuildingComponent, env: EnvelopeBounds): boolean {
+  // Fixtures and traps live in occupied / cabinet space. Only stub-outs belong in the wall.
+  if (isOccupiedUse(c)) return false;
   const [x, , z] = c.geometry.center;
   const [sx, , sz] = c.geometry.size;
   if (sx <= 0.22 && (x - env.xMin <= WALL_CAVITY_M || env.xMax - x <= WALL_CAVITY_M)) return true;
   if (sz <= 0.22 && (z - env.zMin <= WALL_CAVITY_M || env.zMax - z <= WALL_CAVITY_M)) return true;
-  const group = c.assembly?.explodeGroup ?? "";
+  // Explode grouping is a camera fact, not occupancy. Parentage is the host.
   const parent = c.parentId ?? "";
-  return group.includes("assembly.wall") || parent.includes("assembly.wall");
+  return parent.includes("assembly.wall");
 }
 
 function outsideFootprint(c: BuildingComponent, env: EnvelopeBounds): boolean {
@@ -68,8 +74,10 @@ export function classifyComponent(graph: BuildingGraph, c: BuildingComponent): S
   if (y >= env.ridgeY - 0.25) return "ROOF_SPACE";
   if (y > env.wallTop + 0.08) return "ATTIC";
   if (y > env.wallTop - 0.22 && y <= env.wallTop + 0.08 && !nearWall(c, env)) return "CEILING_CAVITY";
+  // A vertical stack parented to a wall is a shaft even if its centroid is in the basement.
+  if (nearWall(c, env) && isVertical(c)) return "SHAFT";
   if (nearWall(c, env) && y >= env.floorTop - 0.05 && y <= env.wallTop + 0.05) {
-    return isVertical(c) ? "SHAFT" : "WALL_CAVITY";
+    return "WALL_CAVITY";
   }
   // Joist depth only — members hung below the sill are under-floor, not in the joists.
   if (y < env.floorTop - 0.02 && y >= env.sillTop - 0.02) return "FLOOR_CAVITY";
