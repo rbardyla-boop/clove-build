@@ -1,0 +1,494 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --color-ink: #14110e;
+  --color-paper: #ede6dc;
+  --color-clove: #b55233;
+  --color-chrome: #1c1814;
+  --color-chrome-2: #261f1a;
+  --color-muted: #a89888;
+  --color-line: #3a322c;
+  --color-pass: #6b8f71;
+  --color-fail: #b55233;
+  --color-uncertain: #c4a35a;
+  --color-missing: #7a91a8;
+  --color-sky: #c5cdd4;
+}
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  html,
+  body,
+  #app {
+    height: 100%;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+  }
+}
+
+.lab-root {
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.lab-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 14px;
+  background: var(--color-chrome);
+  border-bottom: 1px solid color-mix(in oklab, var(--color-paper) 12%, transparent);
+  min-height: 48px;
+}
+
+.lab-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.lab-wordmark {
+  font-family: var(--font-display);
+  font-weight: 550;
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.lab-product {
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  font-weight: 500;
+}
+
+.lab-context {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  flex: 1;
+}
+
+.lab-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 99px;
+  background: color-mix(in oklab, var(--color-paper) 35%, transparent);
+}
+
+.lab-top-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.lab-main {
+  position: relative;
+  min-height: 0;
+}
+
+.lab-stage {
+  position: absolute;
+  inset: 0;
+  background: var(--color-sky);
+}
+
+.lab-stage-boot {
+  display: grid;
+  place-items: center;
+  color: var(--color-ink);
+  font-size: 0.9rem;
+}
+
+.lab-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.lab-inspector {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: min(320px, calc(100vw - 24px));
+  max-height: calc(100% - 24px);
+  overflow: auto;
+  padding: 16px;
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--color-chrome) 88%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-paper) 12%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.lab-kicker {
+  margin: 0 0 4px;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  font-weight: 500;
+}
+
+.lab-inspect-title {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 550;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  line-height: 1.2;
+}
+
+.lab-muted {
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.lab-dl {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+.lab-dl div {
+  display: grid;
+  gap: 2px;
+}
+.lab-dl dt {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.lab-dl dd {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.lab-purpose,
+.lab-note {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.lab-prov {
+  font-size: 0.75rem;
+  margin: 8px 0;
+}
+
+.lab-inspect-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.lab-btn {
+  appearance: none;
+  border: 0;
+  background: var(--color-chrome-2);
+  color: var(--color-paper);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-paper) 14%, transparent);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  min-height: 36px;
+  transition:
+    background 150ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 150ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lab-btn:hover {
+  background: #312922;
+}
+.lab-btn:active {
+  transform: scale(0.98);
+}
+.lab-btn:focus-visible {
+  outline: 2px solid var(--color-paper);
+  outline-offset: 2px;
+}
+.lab-btn-on {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+.lab-btn-accent {
+  background: var(--color-clove);
+  color: var(--color-paper);
+  box-shadow: none;
+}
+
+.lab-icon-btn {
+  appearance: none;
+  border: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--color-chrome-2);
+  color: var(--color-paper);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-paper) 14%, transparent);
+}
+
+.lab-hint {
+  position: absolute;
+  left: 50%;
+  top: 16px;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-ink) 55%, transparent);
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
+.lab-scrubber {
+  display: grid;
+  grid-template-columns: auto auto auto minmax(7rem, 11rem) 1fr;
+  grid-template-rows: auto auto;
+  gap: 6px 10px;
+  align-items: center;
+  padding: 8px 14px 4px;
+  background: var(--color-chrome);
+  border-top: 1px solid color-mix(in oklab, var(--color-paper) 12%, transparent);
+}
+.lab-scrubber-label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+}
+.lab-range {
+  grid-column: 5;
+  grid-row: 1;
+  width: 100%;
+  accent-color: var(--color-paper);
+}
+.lab-range-ends {
+  grid-column: 5;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.lab-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding: 8px 14px 48px;
+  background: var(--color-chrome);
+}
+
+.lab-explode {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.lab-range-explode {
+  width: 120px;
+}
+.lab-tabular {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-paper);
+}
+
+.lab-check,
+.lab-challenge,
+.lab-drawer {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  width: min(380px, calc(100vw - 24px));
+  max-height: min(70%, 520px);
+  overflow: auto;
+  padding: 16px;
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--color-chrome) 92%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-paper) 12%, transparent);
+  backdrop-filter: blur(10px);
+  z-index: 3;
+}
+.lab-challenge {
+  top: 12px;
+  bottom: auto;
+  left: 12px;
+}
+.lab-drawer {
+  top: 12px;
+  bottom: 12px;
+  max-height: none;
+  z-index: 4;
+}
+.lab-check-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+}
+.lab-check-verdict {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  letter-spacing: -0.03em;
+}
+.lab-check-fail,
+.lab-pill-fail {
+  color: var(--color-fail);
+}
+.lab-check-pass {
+  color: var(--color-pass);
+}
+.lab-check-incomplete {
+  color: var(--color-uncertain);
+}
+.lab-disclaimer {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.lab-check-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  gap: 12px;
+}
+.lab-check-item {
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in oklab, var(--color-paper) 12%, transparent);
+}
+.lab-check-item-head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.lab-pill {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px currentColor;
+}
+.lab-pill-missing-information {
+  color: var(--color-missing);
+}
+.lab-pill-uncertain {
+  color: var(--color-uncertain);
+}
+.lab-pill-pass {
+  color: var(--color-pass);
+}
+.lab-mono {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-muted);
+}
+.lab-plain {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 0.82rem;
+  color: var(--color-muted);
+}
+.lab-test-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: grid;
+  gap: 14px;
+}
+.lab-input {
+  width: 100%;
+  margin-top: 6px;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  border: 0;
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-paper) 14%, transparent);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.82rem;
+}
+.lab-diag {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--color-ink) 70%, transparent);
+  z-index: 2;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+@media (max-width: 720px) {
+  .lab-context {
+    display: none;
+  }
+  .lab-inspector {
+    top: auto;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    width: 100%;
+    max-height: 38%;
+    border-radius: 16px 16px 0 0;
+  }
+  .lab-scrubber {
+    grid-template-columns: auto auto auto 1fr;
+  }
+  .lab-range,
+  .lab-range-ends {
+    grid-column: 1 / -1;
+  }
+  .lab-challenge,
+  .lab-check,
+  .lab-drawer {
+    left: 8px;
+    right: 8px;
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-btn {
+    transition: none;
+  }
+}

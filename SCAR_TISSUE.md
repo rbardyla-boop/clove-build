@@ -1,0 +1,17 @@
+# Scar tissue
+
+Failures found during v0.1 construction and the permanent detector for each.
+
+| Failure | Class | Protection |
+| --- | --- | --- |
+| R3F 9.x rejects React 19.3 peer range | ENVIRONMENT | Raw Three.js renderer; graph remains outside the scene |
+| SSR would import `three` via the route | IMPLEMENTATION | Viewport is dynamically imported after mount |
+| Explode must not accumulate transforms | MECHANISM | Pure `explodeOffset`; tests cycle 0↔1 |
+| Remove in Inspect silently mutating the house | IMPLEMENTATION | `REMOVE_COMPONENT` ignored unless mode is `break-it` |
+| Invented NBC dimensional rules | CONCEPT | Snow/span and lumber grade return MISSING/UNCERTAIN; tests lock that |
+| Reset leaving explode/stage dirty | IMPLEMENTATION | `RESET_SPECIMEN` recreates overlay; apply.test.ts |
+| Duplicate component ids in the generator | IMPLEMENTATION | Registry throws; integrity test |
+| Toolbar “Explode” text matched the slider label, so a find-text click did nothing | IMPLEMENTATION | Slider caption is Amount; the action button remains Explode |
+| Headless Chromium software GL ~10 fps with 381 meshes + shadows | ENVIRONMENT | Shadows disabled on SwiftShader/llvmpipe; fewer casters; desktop GPU is the target |
+
+Gauntlet classes still expected from the human Ryan Test: transform attack, mode collision, rapid scrub, selection of tight framing, resize.

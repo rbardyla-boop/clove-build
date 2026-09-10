@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Clove Build Lab",
+      "hasCanvas": false,
+      "bodyTextLen": 371,
+      "bodyTextHash": "f18c2fe1fc072cbe0e2ec6356125fd090d4cd65697e30b1faa73f838f42b05bb",
+      "bodyTextPrefix": "Clove BUILD LAB PEI · Prototype NBC 2020 2026-09-10 Fit Ryan Tes",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Clove Build Lab",
+      "hasCanvas": false,
+      "bodyTextLen": 335,
+      "bodyTextHash": "2c819b95a405cc275a5d0cdc53e982d5d6ec3fbb4fe400282c71851f2e0be500",
+      "bodyTextPrefix": "Clove BUILD LAB Fit Ryan Test Build Receipt Diag Loading laborat",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}

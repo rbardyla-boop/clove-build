@@ -1,0 +1,66 @@
+import { checkGraphIntegrity } from "@/crates/building-graph/integrity";
+import { hashGraph } from "@/crates/building-graph/hash";
+import { explodeOffset } from "@/crates/explode/engine";
+import { STAGE_MAX } from "@/crates/construction-sequence/stages";
+import type { BuildingGraph } from "@/crates/building-graph/types";
+import type { LabSnapshot } from "@/crates/session/apply";
+import lastRun from "./last-run.json";
+
+export type Receipt = {
+  specimen: string;
+  version: string;
+  graphIntegrity: "PASS" | "FAIL";
+  explodeInvariant: "PASS" | "FAIL";
+  sequenceInvariant: "PASS" | "FAIL";
+  resetInvariant: "PASS" | "FAIL";
+  ruleDeterminism: "PASS" | "FAIL";
+  automated: { passed: number; failed: number; ranAt: string };
+  browserVerification: string;
+  regulatoryPack: string;
+  knownLimitations: string[];
+  graphHash: string;
+  componentCount: number;
+};
+
+export function liveReceipt(graph: BuildingGraph, snapshot: LabSnapshot): Receipt {
+  const issues = checkGraphIntegrity(graph);
+  const sample = Object.values(graph.components).find((c) => c.geometry.kind === "box")!;
+  const z = explodeOffset(graph, sample, 0, "whole");
+  const a = explodeOffset(graph, sample, 1, "whole");
+  const b = explodeOffset(graph, sample, 0, "whole");
+  const c = explodeOffset(graph, sample, 1, "whole");
+  const explodeOk =
+    z.every((n) => n === 0) &&
+    b.every((n) => n === 0) &&
+    a[0] === c[0] &&
+    a[1] === c[1] &&
+    a[2] === c[2];
+  const seqOk = Object.values(graph.components).every((comp) => comp.assembly.stage >= 1 && comp.assembly.stage <= STAGE_MAX);
+  const resetOk = snapshot.removedIds.length === 0 && snapshot.explodeAmount === 0;
+
+  return {
+    specimen: graph.id,
+    version: graph.version,
+    graphIntegrity: issues.length === 0 ? "PASS" : "FAIL",
+    explodeInvariant: explodeOk ? "PASS" : "FAIL",
+    sequenceInvariant: seqOk ? "PASS" : "FAIL",
+    resetInvariant: resetOk ? "PASS" : "FAIL",
+    ruleDeterminism: lastRun.ruleDeterminism === "PASS" ? "PASS" : "FAIL",
+    automated: {
+      passed: lastRun.passed,
+      failed: lastRun.failed,
+      ranAt: lastRun.ranAt,
+    },
+    browserVerification: lastRun.browserVerification,
+    regulatoryPack: "PROTOTYPE / PARTIALLY VERIFIED",
+    knownLimitations: [
+      "No finite-element structural analysis.",
+      "NBC provision text is not reproduced; most construction rules are educational demo rules.",
+      "PEI adoption of NBC 2025 is unverified as of 2026-09-10.",
+      "Break It mutations reset on reload; Ryan Test marks persist locally.",
+      "Desktop is the acceptance target; mobile is usable but not the design center.",
+    ],
+    graphHash: hashGraph(graph),
+    componentCount: Object.keys(graph.components).length,
+  };
+}

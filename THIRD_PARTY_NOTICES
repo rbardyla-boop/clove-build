@@ -1,0 +1,19 @@
+Clove Build Lab third-party notices
+===================================
+
+This file lists runtime packages shipped with the application. Each remains
+under its own licence. The AGPL-3.0 grant on original Clove source does not
+relicense them.
+
+- react, react-dom — MIT
+- three — MIT
+- zustand — MIT
+- @tanstack/react-router, @tanstack/react-start, @tanstack/react-query, @tanstack/react-table — MIT
+- tailwindcss — MIT
+- lucide-react — ISC
+- zod — MIT
+- better-auth — MIT
+- and other packages in package-lock.json
+
+National Model Codes are copyright of the National Research Council of Canada.
+They are not redistributed here.

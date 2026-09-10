@@ -1,0 +1,55 @@
+{
+  "retrieved": "2026-09-10",
+  "project": "clove-build-lab",
+  "policy": "Primary official sources only for executable regulatory facts. NBC text is not copied. Unverified details become MISSING_INFORMATION or UNCERTAIN.",
+  "sources": [
+    {
+      "id": "pei-news-2024-03-08",
+      "organization": "Government of Prince Edward Island",
+      "title": "New building codes take effect March 31",
+      "locator": "https://www.princeedwardisland.ca/en/news/new-building-codes-take-effect-march-31",
+      "kind": "official-news",
+      "usedFor": "PEI NBC 2020 / NECB 2020 adoption announcement and 31 March 2024 effective date; 2015 grandfathering of in-progress projects."
+    },
+    {
+      "id": "cbhcc-pt-adoption",
+      "organization": "Canadian Board for Harmonized Construction Codes",
+      "title": "Provincial/Territorial adoption",
+      "locator": "https://cbhcc-cchcc.ca/en/provincial-territorial-adoption/",
+      "kind": "code-development-body",
+      "usedFor": "PEI row: NBC 2020 Energy Performance Tier 1 adopted in full, enforcement 31 March 2024 (table as of August 2024)."
+    },
+    {
+      "id": "canlii-ec177-20",
+      "organization": "Prince Edward Island via CanLII",
+      "title": "Building Codes Regulations, PEI Reg EC177/20",
+      "locator": "https://www.canlii.org/en/pe/laws/regu/pei-reg-ec177-20/latest/pei-reg-ec177-20.html",
+      "kind": "secondary-consolidation",
+      "usedFor": "Section 2 adoption wording (NBC 2020 with Schedules A and B; NECB 2020). Not treated as the official Gazette."
+    },
+    {
+      "id": "pei-bca",
+      "organization": "Government of Prince Edward Island",
+      "title": "Building Codes Act, R.S.P.E.I. 1988, Cap. B-5.1",
+      "locator": "https://www.princeedwardisland.ca/sites/default/files/8a92/B-05-1-Building%20Codes%20Act.pdf",
+      "kind": "official-legislation",
+      "usedFor": "Enabling statute for code adoption by regulation."
+    },
+    {
+      "id": "nrc-nbc-2020",
+      "organization": "National Research Council of Canada",
+      "title": "National Building Code of Canada 2020",
+      "locator": "https://nrc.canada.ca/en/certifications-evaluations-standards/codes-canada/codes-canada-publications/national-building-code-canada-2020",
+      "kind": "official-agency",
+      "usedFor": "Existence and edition of NBC 2020. No code text ingested."
+    },
+    {
+      "id": "nrc-publications",
+      "organization": "National Research Council of Canada",
+      "title": "Codes Canada publications",
+      "locator": "https://nrc.canada.ca/en/certifications-evaluations-standards/codes-canada/codes-canada-publications",
+      "kind": "official-agency",
+      "usedFor": "NBC 2025 is published nationally; PEI adoption of 2025 was not verified."
+    }
+  ]
+}
