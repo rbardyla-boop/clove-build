@@ -1,5 +1,5 @@
 import type { BuildingComponent, BuildingGraph } from "@/crates/building-graph/types";
-import { P, Y, halfL, halfW } from "@/specimen/pei-part9-house/params";
+import { siteFacts } from "@/crates/site/facts";
 import { SERVICE_ALLOWED_ZONES, zoneAllowsExposedService, type SpaceZoneId } from "./zones";
 
 const LONG_M = 1.2;
@@ -40,17 +40,18 @@ function pointIn(x: number, y: number, z: number, b: Aabb): boolean {
   return x >= b.min[0] && x <= b.max[0] && y >= b.min[1] && y <= b.max[1] && z >= b.min[2] && z <= b.max[2];
 }
 
-export function envelopeBounds(_graph: BuildingGraph): EnvelopeBounds {
+export function envelopeBounds(graph: BuildingGraph): EnvelopeBounds {
+  const s = siteFacts(graph);
   return {
-    xMin: -halfL,
-    xMax: halfL,
-    zMin: -halfW,
-    zMax: halfW,
-    floorTop: Y.floorTop,
-    wallTop: Y.wallTop,
-    sillTop: Y.sillTop,
-    grade: P.grade,
-    ridgeY: Y.ridgeY,
+    xMin: s.xMin,
+    xMax: s.xMax,
+    zMin: s.zMin,
+    zMax: s.zMax,
+    floorTop: s.floorTop,
+    wallTop: s.wallTop,
+    sillTop: s.sillTop,
+    grade: s.grade,
+    ridgeY: s.ridgeY,
   };
 }
 

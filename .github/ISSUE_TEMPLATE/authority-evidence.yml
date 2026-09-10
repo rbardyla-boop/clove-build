@@ -1,0 +1,33 @@
+name: Authority / evidence failure
+description: Clove is claiming more than its evidence proves.
+title: "[authority] "
+labels: ["authority"]
+body:
+  - type: textarea
+    id: area
+    attributes:
+      label: Component / rule / claim
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected Clove to say
+    validations:
+      required: true
+  - type: textarea
+    id: showed
+    attributes:
+      label: What Clove claimed
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why the evidence does not support that claim
+    validations:
+      required: true
+  - type: input
+    id: trade
+    attributes:
+      label: Trade / background (optional)

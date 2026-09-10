@@ -137,6 +137,30 @@ export function addRoof(reg: Registry) {
       });
     }
   }
+
+  for (const side of [
+    { tag: "s", z: halfW + P.overhang - 0.02, y: tailY },
+    { tag: "n", z: -halfW - P.overhang + 0.02, y: tailY },
+  ]) {
+    reg.add({
+      id: `roof.fascia.${side.tag}`,
+      type: "fascia",
+      label: `Fascia (${side.tag === "s" ? "front" : "back"})`,
+      parentId: A,
+      geometry: { kind: "box", center: [0, side.y, side.z], size: [P.length + P.overhang, 0.18, 0.025] },
+      material: MAT.wood,
+      assembly: {
+        stage: 12,
+        dependencies: ["rafter.s.00"],
+        explodeGroup: A,
+        explodeVector: [0, 2.4, side.z > 0 ? 0.8 : -0.8],
+        localExplodeVector: [0, 0.2, side.z > 0 ? 0.4 : -0.4],
+      },
+      learning: learn("A board closing the rafter tails.", "Finish the eave and receive gutter later. Gutter is not in this specimen."),
+      provenance: PROV_MODEL,
+      tags: ["roof", "fascia"],
+    });
+  }
 }
 
 function addRafter(

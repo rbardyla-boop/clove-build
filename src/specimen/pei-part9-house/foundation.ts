@@ -201,5 +201,48 @@ export function addFoundation(reg: Registry) {
     });
   }
 
+  for (const s of sills) {
+    const gY = Y.fdnTop + 0.004;
+    reg.add({
+      id: `${s.id}.gasket`,
+      type: "gasket",
+      label: `Sill gasket (${s.id.split(".")[1]})`,
+      parentId: A,
+      geometry: { kind: "box", center: [s.c[0], gY, s.c[2]], size: [s.s[0], 0.008, s.s[2]] },
+      material: MAT.poly,
+      assembly: { stage: 5, dependencies: [s.fdn], explodeGroup: A, explodeVector: s.v, localExplodeVector: s.v },
+      learning: learn(
+        "A thin separation layer between concrete and the sill plate.",
+        "Capillary break and air seal at the sill. Product and compression are not modelled.",
+      ),
+      provenance: { ...PROV_MODEL, authority: "TRADE_PRACTICE", status: "demo-only" },
+      tags: ["sill", "gasket"],
+    });
+  }
+
+  const anchors: { id: string; c: Vec3 }[] = [
+    { id: "anchor.nw", c: [-halfL + 0.4, Y.fdnTop + 0.04, -halfW + 0.25] },
+    { id: "anchor.ne", c: [halfL - 0.4, Y.fdnTop + 0.04, -halfW + 0.25] },
+    { id: "anchor.sw", c: [-halfL + 0.4, Y.fdnTop + 0.04, halfW - 0.25] },
+    { id: "anchor.se", c: [halfL - 0.4, Y.fdnTop + 0.04, halfW - 0.25] },
+  ];
+  for (const a of anchors) {
+    reg.add({
+      id: a.id,
+      type: "anchor",
+      label: "Sill anchor (representative)",
+      parentId: A,
+      geometry: { kind: "box", center: a.c, size: [0.04, 0.16, 0.04] },
+      material: MAT.steel,
+      assembly: { stage: 5, dependencies: ["fdn.front"], explodeGroup: A, explodeVector: [0, -0.2, 0], localExplodeVector: [0, -0.1, 0] },
+      learning: learn(
+        "A representative sill-to-foundation anchor. Four corners are shown, not the full bolt schedule.",
+        "Hold the wood house down. Spacing, embedment and capacity are not verified.",
+      ),
+      provenance: { ...PROV_MODEL, status: "not-evaluated", authority: "UNKNOWN" },
+      tags: ["anchor", "sill"],
+    });
+  }
+
   void down;
 }

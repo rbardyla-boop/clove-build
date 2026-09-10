@@ -2,7 +2,7 @@ import type { MaterialDescriptor, SystemConnection, Vec3 } from "@/crates/buildi
 import { addAssembly, addBox, MAT, PROV_EDU, segmentBox } from "./helper";
 import { P, Y, halfL, halfW } from "./params";
 import type { Registry } from "./registry";
-import { linearRun } from "@/crates/geometry/run";
+import { linearRun, slopedDrain } from "@/crates/geometry/run";
 
 const COLD = 0.022;
 const HOT = 0.022;
@@ -25,7 +25,12 @@ function pipe(
   purpose: string,
   extra?: { explodeGroup?: string; explodeVector?: Vec3; local?: Vec3; parentId?: string },
 ) {
-  const { center, size } = segmentBox(a, b, dia);
+  const horiz = Math.hypot(b[0] - a[0], b[2] - a[2]);
+  const run =
+    type === "pipe-dwv" && horiz >= 0.5
+      ? slopedDrain(a, b)
+      : linearRun(a, b);
+  const { center, size } = segmentBox(run.from, run.to, dia);
   addBox(reg, {
     id,
     type,
@@ -46,9 +51,10 @@ function pipe(
     visualization: "SCHEMATIC FLOW",
     provenance: PROV_EDU,
     system: { systemId: "system.plumbing", nodeId: id, role: type },
-    run: linearRun(a, b),
+    run,
     dependencies: ["slab.basement", "assembly.wall.bath"],
   });
+  return run.to;
 }
 
 export function addPlumbing(reg: Registry) {
@@ -300,9 +306,10 @@ export function addPlumbing(reg: Registry) {
     [-3.55, Y.floorTop + 0.05, -2.15], [-3.55, underDwvY, -2.15], BRANCH, MAT.abs, 15,
     ["plumbing", "dwv", "bath"], "Toilet waste dropping through the floor.",
     "Leave the fixture through the floor, then travel under the joists.");
-  pipe(reg, "plumbing.dwv.branch.toilet.001", "Toilet drain branch", "pipe-dwv",
+  const toiletTo = pipe(reg, "plumbing.dwv.branch.toilet.001", "Toilet drain branch", "pipe-dwv",
     [-3.55, underDwvY, -2.15], [stackX, underDwvY, stackZ], BRANCH, MAT.abs, 15,
     ["plumbing", "dwv", "bath"], "Toilet waste hung under the joists.", "Connect the soil fixture to the stack below the floor.");
+  void toiletTo;
   pipe(reg, "plumbing.dwv.branch.lav.001", "Lavatory drain branch", "pipe-dwv",
     [-3.2, Y.floorTop + 0.4, -0.75], [stackX, Y.floorTop + 0.4, stackZ], BRANCH, MAT.abs, 15,
     ["plumbing", "dwv", "bath"], "Lavatory waste to the stack.", "Connect the lavatory trap to the stack.",
@@ -314,16 +321,16 @@ export function addPlumbing(reg: Registry) {
   pipe(reg, "plumbing.dwv.branch.tub.001", "Tub drain branch", "pipe-dwv",
     [-2.85, underDwvY, 0.55], [stackX, underDwvY, stackZ], BRANCH, MAT.abs, 15,
     ["plumbing", "dwv", "bath"], "Tub waste hung under the joists.", "Connect the tub trap to the stack below the floor.");
-  pipe(reg, "plumbing.dwv.branch.kitchen.drop", "Kitchen drain drop through floor", "pipe-dwv",
+  const kitDropTo = pipe(reg, "plumbing.dwv.branch.kitchen.drop", "Kitchen drain drop through floor", "pipe-dwv",
     [2.75, Y.floorTop + 0.5, 3.05], [2.75, underDwvY, 3.05], BRANCH, MAT.abs, 15,
     ["plumbing", "dwv", "kitchen"], "Kitchen waste dropping through the subfloor at the sink.",
     "Leave the cabinet through the floor, then travel under the joists.");
-  pipe(reg, "plumbing.dwv.branch.kitchen.001", "Kitchen drain branch", "pipe-dwv",
-    [2.75, underDwvY, 3.05], [stackX, underDwvY, 3.05], BRANCH, MAT.abs, 15,
+  const kitRunTo = pipe(reg, "plumbing.dwv.branch.kitchen.001", "Kitchen drain branch", "pipe-dwv",
+    kitDropTo, [stackX, kitDropTo[1], 3.05], BRANCH, MAT.abs, 15,
     ["plumbing", "dwv", "kitchen"], "Kitchen waste hung under the joists, not bored through them.",
     "Carry kitchen waste below the floor structure to the stack wall.");
   pipe(reg, "plumbing.dwv.branch.kitchen.002", "Kitchen drain to stack", "pipe-dwv",
-    [stackX, underDwvY, 3.05], [stackX, underDwvY, stackZ], BRANCH, MAT.abs, 15,
+    kitRunTo, [stackX, kitRunTo[1], stackZ], BRANCH, MAT.abs, 15,
     ["plumbing", "dwv", "kitchen"], "Kitchen waste turning along the wet wall under the floor.",
     "Join kitchen waste to the stack from below the joists.");
 

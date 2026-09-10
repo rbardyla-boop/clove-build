@@ -7,6 +7,8 @@ const FOUNDATION: ReadonlySet<ComponentType> = new Set([
   "foundation-wall",
   "pad-footing",
   "slab",
+  "gasket",
+  "anchor",
 ]);
 
 const ENVELOPE: ReadonlySet<ComponentType> = new Set([
@@ -18,6 +20,7 @@ const ENVELOPE: ReadonlySet<ComponentType> = new Set([
   "cladding",
   "roof-covering",
   "rainscreen",
+  "fascia",
 ]);
 
 const PLUMBING: ReadonlySet<ComponentType> = new Set([
@@ -51,11 +54,13 @@ const HVAC: ReadonlySet<ComponentType> = new Set([
   "hrv",
   "refrigerant-line",
   "condensate",
+  "hanger",
 ]);
 
 const THERMAL: ReadonlySet<ComponentType> = new Set(["insulation", "air-barrier", "vapour-barrier"]);
 
 const FINISH: ReadonlySet<ComponentType> = new Set(["drywall", "trim", "floor-finish", "paint"]);
+const PLUMBING_EXTRA: ReadonlySet<ComponentType> = new Set(["pool", "hot-tub"]);
 
 export const TRADE_IDS: TradeId[] = [
   "foundation",
@@ -78,6 +83,8 @@ export function tradeOf(c: BuildingComponent): TradeId {
   if (HVAC.has(t)) return "hvac";
   if (THERMAL.has(t)) return "thermal";
   if (FINISH.has(t)) return "finish";
+  if (PLUMBING_EXTRA.has(t)) return "plumbing";
+  if (t === "deck" || t === "fastener-group" || t === "equipment-pad") return "structure";
   if (t === "penetration") {
     const tag = c.tags?.find((x) => TRADE_IDS.includes(x as TradeId));
     return (tag as TradeId | undefined) ?? "structure";

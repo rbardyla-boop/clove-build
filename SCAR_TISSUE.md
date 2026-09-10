@@ -38,3 +38,6 @@ Failures found during construction and the permanent detector for each.
 | DWV-GRADE-002: any ΔY counted as sloped | MECHANISM | Negative fall in flow direction → `reverse-grade` FAIL |
 | ROUTE-HOST-001: explodeGroup counted as wall-hosted | MECHANISM | Occupied-space uses `inWallCavity` only |
 | SPACE-WALL-001: 350–380 mm near-wall heuristic | MECHANISM | Wall cavity is extruded bottom-plate XZ ±25 mm |
+| DEPTH-001: sloped DWV used AABB as rendered truth | MECHANISM | Renderer orients the stick along `run.from`→`run.to` |
+| DEPTH-002: engines imported PEI P/Y | MECHANISM | `siteFacts(graph)` |
+| DEPTH-003: sequence treated assembly groups as unbuilt | MECHANISM | Group prerequisites count as placed if present |

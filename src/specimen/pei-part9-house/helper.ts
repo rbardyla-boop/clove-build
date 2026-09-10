@@ -19,9 +19,10 @@ export function segmentBox(a: Vec3, b: Vec3, dia: number): { center: Vec3; size:
   const dy = Math.abs(b[1] - a[1]);
   const dz = Math.abs(b[2] - a[2]);
   const center = midpoint(a, b);
-  if (dx >= dy && dx >= dz) return { center, size: [Math.max(dx, 0.02), dia, dia] };
-  if (dy >= dx && dy >= dz) return { center, size: [dia, Math.max(dy, 0.02), dia] };
-  return { center, size: [dia, dia, Math.max(dz, 0.02)] };
+  return {
+    center,
+    size: [Math.max(dx, dia), Math.max(dy, dia), Math.max(dz, dia)],
+  };
 }
 
 export function addBox(

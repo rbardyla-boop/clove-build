@@ -14,11 +14,11 @@ describe("DWV endpoint runs", () => {
     assert.equal(c.run!.to.length, 3);
   });
 
-  it("classifies today's horizontal drains as level from elevations, not box size", () => {
+  it("classifies horizontal drains as sloped from endpoint elevations, not box size", () => {
     const c = graph.components["plumbing.dwv.branch.kitchen.001"]!;
     const ev = classifyDwvRun(c);
-    assert.equal(ev.kind, "level");
-    assert.equal(ev.fall, 0);
+    assert.equal(ev.kind, "sloped");
+    assert.ok((ev.fall ?? 0) > 0);
     assert.ok((ev.horiz ?? 0) > 0.5);
   });
 

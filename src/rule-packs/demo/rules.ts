@@ -4,6 +4,8 @@ import { findClashes } from "@/crates/clash/engine";
 import { evaluateWetWallFit } from "@/crates/clash/containment";
 import { findRoutingIssues } from "@/crates/routing/engine";
 import { classifyDwvRun } from "@/crates/geometry/run";
+import { evaluateRelations } from "@/crates/relations/engine";
+import { findSequenceViolations } from "@/crates/sequence/dag";
 import { buildPeiHouse } from "@/specimen/pei-part9-house";
 
 const DEMO = {
@@ -753,6 +755,127 @@ export const demoRules: Rule[] = [
         inputs: { reverseRuns: reverse.length },
         reason: "A DWV run rises in the declared from→to flow direction. That is reverse grade, not a sloped drain.",
         assumption: "Any non-zero downhill fall is still not a licensed NPC slope check.",
+      };
+    },
+  },
+  {
+    id: "JOIST-BORE-COMPLIANCE",
+    title: "Joist-bore structural limits are not encoded",
+    packVersion: DEMO_PACK_VERSION,
+    domain: "electrical",
+    provenance: {
+      authority: "UNKNOWN",
+      sourceIds: ["clove-demo-pack"],
+      wording: "executable-logic-only",
+      verification: "unverified",
+    },
+    authorityLabel: "Missing information — not an NBC/CSA hole-location determination",
+    evaluate: (ctx) => {
+      const graph = graphFor(ctx);
+      const bores = Object.values(graph.components).filter((c) => c.type === "penetration" && c.penetration?.joistType);
+      return {
+        verdict: "MISSING_INFORMATION",
+        componentIds: bores.map((c) => c.id),
+        inputs: { boreCount: bores.length, allowableLimitsEncoded: false },
+        reason:
+          "Some penetrations store host, diameter and edge distances as project geometry. Allowable remaining wood, hole location limits and manufactured-joist restrictions are not encoded, so compliance cannot be determined.",
+        assumption: "A modelled hole is not a licensed structural penetration.",
+      };
+    },
+  },
+  {
+    id: "REL-STACK-001",
+    title: "Soil stack is geometrically in the wet wall",
+    packVersion: DEMO_PACK_VERSION,
+    domain: "cross-trade",
+    provenance: DEMO,
+    authorityLabel: "Clove educational demonstration rule — geometric containment, not NPC fittings",
+    evaluate: (ctx) => {
+      const graph = graphFor(ctx);
+      const rel = (graph.relations ?? []).find((r) => r.kind === "contained-in" && graph.components[r.a]?.type === "pipe-dwv");
+      if (!rel) {
+        return {
+          verdict: "MISSING_INFORMATION",
+          componentIds: [],
+          inputs: { relation: null },
+          reason: "This specimen does not declare a stack-in-wall containment relation.",
+        };
+      }
+      const ev = evaluateRelations(graph).find((f) => f.relationId === rel.id);
+      if (!ev?.ok) {
+        return {
+          verdict: "FAIL",
+          componentIds: [rel.a, rel.b],
+          inputs: { relation: rel.id },
+          reason: ev?.reason ?? "Declared containment does not hold geometrically.",
+        };
+      }
+      return {
+        verdict: "PASS",
+        componentIds: [rel.a, rel.b],
+        inputs: { relation: rel.id },
+        reason: ev.reason,
+        assumption: "Containment is a project-model check, not a licensed wet-wall design.",
+      };
+    },
+  },
+  {
+    id: "SEQ-001",
+    title: "Visible work does not precede its modelled prerequisites",
+    packVersion: DEMO_PACK_VERSION,
+    domain: "cross-trade",
+    provenance: DEMO,
+    authorityLabel: "Clove educational demonstration rule — this specimen's sequence, not a legal schedule",
+    evaluate: (ctx) => {
+      const graph = graphFor(ctx);
+      const hits = findSequenceViolations(graph, 23, ctx.removedIds ?? []);
+      if (hits.length === 0) {
+        return {
+          verdict: "PASS",
+          componentIds: [],
+          inputs: { violations: 0 },
+          reason: "At the complete house, no modelled prerequisite is missing.",
+          assumption: "This is the project sequence DAG, not a universal construction law.",
+        };
+      }
+      return {
+        verdict: "FAIL",
+        componentIds: hits.map((h) => h.a).slice(0, 12),
+        inputs: { violations: hits.length, sample: hits[0]?.reason },
+        reason: hits[0]!.reason,
+      };
+    },
+  },
+  {
+    id: "POOL-CEC-001",
+    title: "Pool and spa electrical requirements are not encoded",
+    packVersion: DEMO_PACK_VERSION,
+    domain: "electrical",
+    provenance: {
+      authority: "UNKNOWN",
+      sourceIds: ["clove-demo-pack"],
+      wording: "executable-logic-only",
+      verification: "unverified",
+    },
+    authorityLabel: "Missing information — CEC Section 68 is not reproduced",
+    evaluate: (ctx) => {
+      const graph = graphFor(ctx);
+      const pools = Object.values(graph.components).filter((c) => c.type === "pool" || c.type === "hot-tub");
+      if (pools.length === 0) {
+        return {
+          verdict: "PASS",
+          componentIds: [],
+          inputs: { pools: 0 },
+          reason: "This specimen has no pool or hot tub.",
+        };
+      }
+      return {
+        verdict: "MISSING_INFORMATION",
+        componentIds: pools.map((c) => c.id),
+        inputs: { pools: pools.length, bondingPresent: Object.values(graph.components).some((c) => c.type === "bonding") },
+        reason:
+          "A pool or hot tub is in the graph. Bonding, GFCI, clearances and water-electrical isolation are not encoded as CEC predicates. The schematic bond, if present, is not a verified installation.",
+        assumption: "Drawing a bonding line is not Section 68 compliance.",
       };
     },
   },

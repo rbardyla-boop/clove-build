@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, "v0.2-integrated-trades", "v0.3-public-utility"]
+    branches: [main, "v0.2-integrated-trades", "v0.3-construction-depth"]
   pull_request:
     branches: [main]
 

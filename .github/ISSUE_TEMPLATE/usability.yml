@@ -1,0 +1,29 @@
+name: Usability failure
+description: I could not figure out what this means, or it taught the wrong mental model.
+title: "[usability] "
+labels: ["usability"]
+body:
+  - type: textarea
+    id: area
+    attributes:
+      label: Where in the interface
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected to learn or do
+    validations:
+      required: true
+  - type: textarea
+    id: showed
+    attributes:
+      label: What happened instead
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why this is a bad teaching model or a blocked inspection
+    validations:
+      required: true

@@ -598,6 +598,24 @@ export function addHvac(reg: Registry) {
     purpose: "Host/trade penetration for the central return.",
     penetration: { hostId: "subfloor.3", tradeComponentId: "hvac.duct.return.rise", purpose: "return-terminal" },
   });
+  addBox(reg, {
+    id: "hvac.hanger.supply.001",
+    type: "hanger",
+    label: "Supply trunk hanger (representative)",
+    parentId: "assembly.hvac",
+    trade: "hvac",
+    center: [indoor[0], underDuctY + 0.14, 0.85],
+    size: [0.04, 0.12, 0.04],
+    material: MAT.steel,
+    stage: 16,
+    explodeGroup: "assembly.hvac",
+    explodeVector: [0, 0.4, 0],
+    tags: ["hvac", "support"],
+    short: "A representative strap hanging the supply trunk from the joists.",
+    purpose: "Show that hung ducts need supports. Spacing is not a verified schedule.",
+    provenance: { ...PROV_EDU, status: "not-evaluated", authority: "UNKNOWN" },
+    dependencies: ["hvac.duct.supply.main"],
+  });
 }
 
 export const HVAC_CONNECTIONS: SystemConnection[] = [

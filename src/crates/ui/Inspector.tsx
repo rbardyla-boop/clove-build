@@ -3,6 +3,9 @@ import { descendants } from "@/crates/building-graph/integrity";
 import { tradeOf } from "@/crates/trades/infer";
 import { TRADE_LABELS } from "@/crates/trades/crate";
 import { classifyComponent } from "@/crates/space-model/classify";
+import { classifyDwvRun } from "@/crates/geometry/run";
+import { whyNotYet } from "@/crates/sequence/dag";
+import { evaluateRelations } from "@/crates/relations/engine";
 import { useLab } from "@/crates/session/store";
 
 export function Inspector() {
@@ -16,6 +19,7 @@ export function Inspector() {
   const isolatedIds = useLab((s) => s.isolatedIds);
   const trace = useLab((s) => s.trace);
   const viewDepth = useLab((s) => s.viewDepth);
+  const constructionStage = useLab((s) => s.constructionStage);
 
   if (!selectedId) {
     return (
@@ -64,6 +68,12 @@ export function Inspector() {
       : null;
   const zone = classifyComponent(graph, c);
   const learn = viewDepth === "learn";
+  const dwv = classifyDwvRun(c);
+  const why = whyNotYet(graph, c.id, constructionStage, removedIds);
+  const rels = evaluateRelations(graph).filter((r) =>
+    graph.relations?.some((x) => x.id === r.relationId && (x.a === c.id || x.b === c.id)),
+  );
+  const atts = (graph.attachments ?? []).filter((a) => a.hostId === c.id || a.attachedId === c.id);
 
   return (
     <aside className="lab-inspector" aria-label="Inspector">
@@ -154,7 +164,37 @@ export function Inspector() {
             <dt>Penetration</dt>
             <dd>
               {c.penetration.purpose} through {graph.components[c.penetration.hostId]?.label ?? c.penetration.hostId}
+              {c.penetration.diameter ? ` · ⌀${Math.round(c.penetration.diameter * 1000)} mm` : ""}
+              {c.penetration.protectionState ? ` · protection ${c.penetration.protectionState}` : ""}
             </dd>
+          </div>
+        ) : null}
+        {c.run ? (
+          <div>
+            <dt>Run</dt>
+            <dd>
+              from {c.run.from.map((n) => n.toFixed(2)).join(" ")} to {c.run.to.map((n) => n.toFixed(2)).join(" ")}
+              {dwv.kind !== "not-dwv" ? ` · ${dwv.kind}` : ""}
+              {c.run.designSlope != null ? ` · design slope ${c.run.designSlope} (${c.run.authorityClass ?? "PROJECT_MODEL_ASSUMPTION"})` : ""}
+            </dd>
+          </div>
+        ) : null}
+        {why.length ? (
+          <div>
+            <dt>Why not yet</dt>
+            <dd>{why.join(" ")}</dd>
+          </div>
+        ) : null}
+        {rels.length ? (
+          <div>
+            <dt>Relations</dt>
+            <dd>{rels.map((r) => `${r.ok ? "ok" : "fail"}: ${r.reason}`).join("; ")}</dd>
+          </div>
+        ) : null}
+        {atts.length ? (
+          <div>
+            <dt>Attachments</dt>
+            <dd>{atts.map((a) => `${a.kind}${a.verified ? "" : " (unverified)"}`).join("; ")}</dd>
           </div>
         ) : null}
         {!learn ? (

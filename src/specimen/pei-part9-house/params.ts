@@ -2,7 +2,7 @@ import { LUMBER, CONCRETE_WALL, FOOTING_T, FOOTING_W, SHEATHING_OSB, SUBFLOOR } 
 
 /** Demonstration dimensions. Not implied regulatory minima. */
 export const SPECIMEN_ID = "PEI-PART9-DEMO-001";
-export const SPECIMEN_VERSION = "0.2.0";
+export const SPECIMEN_VERSION = "0.3.0-depth";
 export const PROJECT_DATE = "2026-09-10";
 
 export const P = {

@@ -9,6 +9,7 @@ import { traceFromComponent, type TraceKind } from "@/crates/system-graph/trace"
 import { searchComponents, type SearchHit } from "@/crates/search/index";
 import { FAULT_MIDROOM, graphWithFaults } from "@/crates/break-it/faults";
 import { descendants } from "@/crates/building-graph/integrity";
+import { buildSpecimen } from "@/specimen/catalog";
 import type { Command, FlowMode, LabEvent, LabMode, TraceState, ViewDepth } from "./commands";
 
 /**
@@ -292,6 +293,16 @@ export function applyCommand(state: LabSnapshot, command: Command, now = Date.no
     }
     case "SET_LESSON":
       return { ...base, lessonId: command.id };
+    case "LOAD_SPECIMEN": {
+      const graph = buildSpecimen(command.id);
+      return {
+        ...createSnapshot(graph),
+        seq: event.seq,
+        events: [...events, { type: "LOAD_SPECIMEN", at: now, seq: event.seq, id: command.id }],
+        cameraNonce: state.cameraNonce + 1,
+        cameraCommand: "reset",
+      };
+    }
     default:
       return state;
   }

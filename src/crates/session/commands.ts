@@ -63,6 +63,7 @@ export type Command =
   | { type: "SET_SEARCH"; query: string }
   | { type: "SHOW_ME"; ids: string[]; reason?: "why" | "where" }
   | { type: "SET_FAULT"; faultId: string; active: boolean }
-  | { type: "SET_LESSON"; id: string | null };
+  | { type: "SET_LESSON"; id: string | null }
+  | { type: "LOAD_SPECIMEN"; id: string };
 
 export type LabEvent = Command & { at: number; seq: number };

@@ -10,6 +10,9 @@ import { tradeOf } from "@/crates/trades/infer";
 import { createLabMaterials, materialFor, type LabMaterials } from "./materials";
 
 const TMP = new THREE.Vector3();
+const TMP_DIR = new THREE.Vector3();
+const TMP_FROM = new THREE.Vector3();
+const Y_UP = new THREE.Vector3(0, 1, 0);
 const RAY = new THREE.Raycaster();
 const NDC = new THREE.Vector2();
 
@@ -160,11 +163,29 @@ export class HouseLab {
     }
   }
 
-  private applyCanonical(mesh: THREE.Mesh, c: BuildingComponent) {
-    const [x, y, z] = c.geometry.center;
+  private applyCanonical(mesh: THREE.Mesh, c: BuildingComponent, exploded?: [number, number, number]) {
+    const [cx, cy, cz] = exploded ?? c.geometry.center;
+    const [bx, by, bz] = c.geometry.center;
+    const ox = cx - bx;
+    const oy = cy - by;
+    const oz = cz - bz;
+    if (c.run) {
+      const [fx, fy, fz] = c.run.from;
+      const [tx, ty, tz] = c.run.to;
+      TMP_FROM.set(fx + ox, fy + oy, fz + oz);
+      TMP.set(tx + ox, ty + oy, tz + oz);
+      TMP_DIR.subVectors(TMP, TMP_FROM);
+      const len = Math.max(TMP_DIR.length(), 0.02);
+      const dia = Math.min(c.geometry.size[0], c.geometry.size[1], c.geometry.size[2]);
+      mesh.position.copy(TMP_FROM).add(TMP).multiplyScalar(0.5);
+      mesh.scale.set(dia, len, dia);
+      mesh.quaternion.setFromUnitVectors(Y_UP, TMP_DIR.normalize());
+      return;
+    }
     const [sx, sy, sz] = c.geometry.size;
-    mesh.position.set(x, y, z);
+    mesh.position.set(cx, cy, cz);
     mesh.scale.set(sx, sy, sz);
+    mesh.quaternion.identity();
     const r = c.geometry.rotation;
     mesh.rotation.set(r?.[0] ?? 0, r?.[1] ?? 0, r?.[2] ?? 0);
   }
@@ -172,6 +193,7 @@ export class HouseLab {
   sync(state: LabSnapshot) {
     this.snapshot = state;
     const graph = workingGraph(state);
+    this.graph = graph;
     this.ensureMeshes(graph);
     const removed = new Set(state.removedIds);
     const hidden = new Set(state.hiddenIds);
@@ -214,8 +236,8 @@ export class HouseLab {
       mesh.visible = visible;
       if (!visible) continue;
 
-      const [x, y, z] = explodedCenter(graph, c, state.explodeAmount, state.explodeScope);
-      mesh.position.set(x, y, z);
+      const exploded = explodedCenter(graph, c, state.explodeAmount, state.explodeScope);
+      this.applyCanonical(mesh, c, exploded);
 
       const isIso = !isolated || isolated.has(id);
       const isXray = state.xray && xrayTypes.has(c.type);
@@ -289,7 +311,7 @@ export class HouseLab {
         this.outlines.set(id, line);
       }
       line.position.copy(mesh.position);
-      line.rotation.copy(mesh.rotation);
+      line.quaternion.copy(mesh.quaternion);
       line.scale.copy(mesh.scale).multiplyScalar(1.01);
       line.material = state.checkHighlights.includes(id)
         ? this.mats.issue

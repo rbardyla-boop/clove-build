@@ -30,6 +30,9 @@ const TEST_FILES = [
   "src/crates/search/search.test.ts",
   "src/crates/code-watch/watch.test.ts",
   "src/crates/contrib/contrib.test.ts",
+  "src/crates/relations/relations.test.ts",
+  "src/crates/sequence/sequence.test.ts",
+  "src/crates/geometry/depth.test.ts",
 ];
 
 const result = spawnSync(

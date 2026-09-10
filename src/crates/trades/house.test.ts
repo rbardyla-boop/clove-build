@@ -14,7 +14,7 @@ describe("integrated trades house", () => {
 
   it("keeps one canonical graph with semantic ids", () => {
     assert.equal(graph.id, "PEI-PART9-DEMO-001");
-    assert.equal(graph.version, "0.2.0");
+    assert.equal(graph.version, "0.3.0-depth");
     const ids = Object.keys(graph.components);
     assert.equal(ids.length, new Set(ids).size);
     assert.ok(ids.length > 200);

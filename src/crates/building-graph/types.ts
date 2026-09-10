@@ -80,7 +80,16 @@ export type ComponentType =
   | "trim"
   | "floor-finish"
   | "paint"
-  | "penetration";
+  | "penetration"
+  | "gasket"
+  | "anchor"
+  | "hanger"
+  | "fastener-group"
+  | "fascia"
+  | "deck"
+  | "pool"
+  | "hot-tub"
+  | "equipment-pad";
 
 export type GeometryDescriptor = {
   kind: "box" | "group";
@@ -145,6 +154,69 @@ export type PenetrationRef = {
   hostId: string;
   tradeComponentId: string;
   purpose: string;
+  shape?: "circle" | "rect";
+  axis?: "x" | "y" | "z";
+  diameter?: number;
+  width?: number;
+  height?: number;
+  depth?: number;
+  authorityClass?: AuthorityCategory;
+  joistType?: string;
+  distanceFromEdgesMm?: [number, number];
+  distanceFromEndMm?: number;
+  protectionState?: "none" | "plate" | "bushing" | "unknown";
+};
+
+export type RelationKind =
+  | "contained-in"
+  | "supported-by"
+  | "aligned-with"
+  | "offset-from"
+  | "spaced-from"
+  | "centred-in"
+  | "penetrates"
+  | "attached-to"
+  | "above"
+  | "below"
+  | "parallel"
+  | "perpendicular"
+  | "clearance-between";
+
+export type Relation = {
+  id: string;
+  kind: RelationKind;
+  a: string;
+  b: string;
+  axis?: 0 | 1 | 2;
+  value?: number;
+  authorityClass: AuthorityCategory;
+};
+
+export type Attachment = {
+  id: string;
+  hostId: string;
+  attachedId: string;
+  kind: string;
+  count?: number;
+  spacing?: number;
+  positions?: Vec3[];
+  verified: boolean;
+  authorityClass: AuthorityCategory;
+};
+
+/** Derived or declared site envelope. Engines must read this, not specimen params. */
+export type SiteFacts = {
+  constructionType: "basement" | "slab-on-grade" | "crawlspace";
+  xMin: number;
+  xMax: number;
+  zMin: number;
+  zMax: number;
+  floorTop: number;
+  wallTop: number;
+  sillTop: number;
+  grade: number;
+  ridgeY: number;
+  joistDepth: number;
 };
 
 /** Axis endpoints of a modelled service run. Flow travels from `from` toward `to`. */
@@ -152,6 +224,12 @@ export type LinearRun = {
   from: Vec3;
   to: Vec3;
   flow: "from-to";
+  horizontalRun?: number;
+  verticalFall?: number;
+  calculatedSlope?: number;
+  designSlope?: number;
+  designSlopeSource?: string;
+  authorityClass?: AuthorityCategory;
 };
 
 export type BuildingComponent = {
@@ -246,4 +324,7 @@ export type BuildingGraph = {
   rootIds: string[];
   assemblies: string[];
   systems: SystemGraph[];
+  site?: SiteFacts;
+  relations?: Relation[];
+  attachments?: Attachment[];
 };

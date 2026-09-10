@@ -1,4 +1,4 @@
-import { P, Y } from "@/specimen/pei-part9-house/params";
+import { siteFacts } from "@/crates/site/facts";
 import type { BuildingGraph } from "@/crates/building-graph/types";
 import { findClashes, type ClashFinding, type ClashKind } from "@/crates/clash/engine";
 import { classifyComponent, serviceRunTooLongInOccupied } from "@/crates/space-model/classify";
@@ -108,7 +108,7 @@ export function findRoutingIssues(graph: BuildingGraph, removedIds: readonly str
     if (c.type === "duct" && zone === "FLOOR_CAVITY") {
       const [sx, sy, sz] = c.geometry.size;
       const vertical = sy >= Math.max(sx, sz) * 1.4;
-      if (!vertical && (sy > P.joist.d * 0.33 || Math.min(sx, sz) > P.joist.d * 0.33)) {
+      if (!vertical && (sy > siteFacts(graph).joistDepth * 0.33 || Math.min(sx, sz) > siteFacts(graph).joistDepth * 0.33)) {
         findings.push({
           id: `route.joist.${c.id}`,
           kind: "IMPOSSIBLE_TRANSITION",
@@ -122,7 +122,7 @@ export function findRoutingIssues(graph: BuildingGraph, removedIds: readonly str
     if ((c.type === "pipe-dwv" || c.type === "pipe-vent") && zone === "FLOOR_CAVITY") {
       const alongX = c.geometry.size[0];
       const dia = Math.min(c.geometry.size[1], c.geometry.size[2]);
-      if (alongX > P.joistOc * 2.5 && dia > 0.03 && c.geometry.center[1] > Y.sillTop) {
+      if (alongX > 1.0 && dia > 0.03 && c.geometry.center[1] > siteFacts(graph).sillTop) {
         findings.push({
           id: `route.joistbore.${c.id}`,
           kind: "IMPOSSIBLE_TRANSITION",
