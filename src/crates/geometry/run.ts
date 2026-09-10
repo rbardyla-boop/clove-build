@@ -21,7 +21,8 @@ export type DwvRunClass =
   | "short-or-vertical"
   | "unmodelled"
   | "level"
-  | "sloped";
+  | "sloped"
+  | "reverse-grade";
 
 export type DwvRunEval = {
   kind: DwvRunClass;
@@ -57,6 +58,9 @@ export function classifyDwvRun(c: BuildingComponent): DwvRunEval {
   }
   if (Math.abs(fall) < LEVEL_M) {
     return { kind: "level", horiz, length, fall, startElevation, endElevation };
+  }
+  if (fall < 0) {
+    return { kind: "reverse-grade", horiz, length, fall, startElevation, endElevation };
   }
   return { kind: "sloped", horiz, length, fall, startElevation, endElevation };
 }

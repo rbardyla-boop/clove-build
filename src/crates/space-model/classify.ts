@@ -2,8 +2,8 @@ import type { BuildingComponent, BuildingGraph } from "@/crates/building-graph/t
 import { P, Y, halfL, halfW } from "@/specimen/pei-part9-house/params";
 import { SERVICE_ALLOWED_ZONES, zoneAllowsExposedService, type SpaceZoneId } from "./zones";
 
-const WALL_CAVITY_M = 0.38;
 const LONG_M = 1.2;
+const CAVITY_EXPAND_M = 0.025;
 
 export type EnvelopeBounds = {
   xMin: number;
@@ -16,6 +16,29 @@ export type EnvelopeBounds = {
   grade: number;
   ridgeY: number;
 };
+
+type Aabb = { min: [number, number, number]; max: [number, number, number] };
+
+function aabbOf(c: BuildingComponent): Aabb | null {
+  if (c.geometry.rotation) return null;
+  const [x, y, z] = c.geometry.center;
+  const [sx, sy, sz] = c.geometry.size;
+  return {
+    min: [x - sx / 2, y - sy / 2, z - sz / 2],
+    max: [x + sx / 2, y + sy / 2, z + sz / 2],
+  };
+}
+
+function overlapVolume(a: Aabb, b: Aabb): number {
+  const dx = Math.max(0, Math.min(a.max[0], b.max[0]) - Math.max(a.min[0], b.min[0]));
+  const dy = Math.max(0, Math.min(a.max[1], b.max[1]) - Math.max(a.min[1], b.min[1]));
+  const dz = Math.max(0, Math.min(a.max[2], b.max[2]) - Math.max(a.min[2], b.min[2]));
+  return dx * dy * dz;
+}
+
+function pointIn(x: number, y: number, z: number, b: Aabb): boolean {
+  return x >= b.min[0] && x <= b.max[0] && y >= b.min[1] && y <= b.max[1] && z >= b.min[2] && z <= b.max[2];
+}
 
 export function envelopeBounds(_graph: BuildingGraph): EnvelopeBounds {
   return {
@@ -43,16 +66,37 @@ function isFixtureOrCabinetTrap(c: BuildingComponent): boolean {
   return tags.includes("cabinet-trap") || tags.includes("fixture-trap");
 }
 
-function nearWall(c: BuildingComponent, env: EnvelopeBounds): boolean {
-  // Fixture bowls and cabinet traps live in occupied space. Other traps classify from geometry.
+/** Bottom-plate XZ extruded floor-to-plate-top, plus 25 mm — not a 350 mm room heuristic. */
+export function wallCavityAabbs(graph: BuildingGraph): Aabb[] {
+  const env = envelopeBounds(graph);
+  const out: Aabb[] = [];
+  for (const c of Object.values(graph.components)) {
+    if (c.type !== "bottom-plate") continue;
+    const a = aabbOf(c);
+    if (!a) continue;
+    out.push({
+      min: [a.min[0] - CAVITY_EXPAND_M, env.floorTop - 0.02, a.min[2] - CAVITY_EXPAND_M],
+      max: [a.max[0] + CAVITY_EXPAND_M, env.wallTop + 0.02, a.max[2] + CAVITY_EXPAND_M],
+    });
+  }
+  return out;
+}
+
+export function inWallCavity(graph: BuildingGraph, c: BuildingComponent): boolean {
   if (isFixtureOrCabinetTrap(c)) return false;
-  const [x, , z] = c.geometry.center;
-  const [sx, , sz] = c.geometry.size;
-  if (sx <= 0.22 && (x - env.xMin <= WALL_CAVITY_M || env.xMax - x <= WALL_CAVITY_M)) return true;
-  if (sz <= 0.22 && (z - env.zMin <= WALL_CAVITY_M || env.zMax - z <= WALL_CAVITY_M)) return true;
-  // Explode grouping is a camera fact, not occupancy. Parentage is the host.
-  const parent = c.parentId ?? "";
-  return parent.includes("assembly.wall");
+  const sa = aabbOf(c);
+  if (!sa) return false;
+  const [x, y, z] = c.geometry.center;
+  const [sx, sy, sz] = c.geometry.size;
+  const vol = Math.abs(sx * sy * sz);
+  for (const w of wallCavityAabbs(graph)) {
+    const ov = overlapVolume(sa, w);
+    if (ov < 1e-6) continue;
+    if (pointIn(x, y, z, w)) return true;
+    if (isVertical(c) && x >= w.min[0] && x <= w.max[0] && z >= w.min[2] && z <= w.max[2]) return true;
+    if (vol > 0 && ov > 0.5 * vol) return true;
+  }
+  return false;
 }
 
 function outsideFootprint(c: BuildingComponent, env: EnvelopeBounds): boolean {
@@ -76,13 +120,10 @@ export function classifyComponent(graph: BuildingGraph, c: BuildingComponent): S
   if (tags.includes("soffit") || (y > env.wallTop - 0.35 && outsideFootprint(c, env))) return "SOFFIT";
   if (y >= env.ridgeY - 0.25) return "ROOF_SPACE";
   if (y > env.wallTop + 0.08) return "ATTIC";
-  if (y > env.wallTop - 0.22 && y <= env.wallTop + 0.08 && !nearWall(c, env)) return "CEILING_CAVITY";
-  // A vertical stack parented to a wall is a shaft even if its centroid is in the basement.
-  if (nearWall(c, env) && isVertical(c)) return "SHAFT";
-  if (nearWall(c, env) && y >= env.floorTop - 0.05 && y <= env.wallTop + 0.05) {
-    return "WALL_CAVITY";
-  }
-  // Joist depth only — members hung below the sill are under-floor, not in the joists.
+  const wall = inWallCavity(graph, c);
+  if (y > env.wallTop - 0.22 && y <= env.wallTop + 0.08 && !wall) return "CEILING_CAVITY";
+  if (wall && isVertical(c)) return "SHAFT";
+  if (wall && y >= env.floorTop - 0.05 && y <= env.wallTop + 0.05) return "WALL_CAVITY";
   if (y < env.floorTop - 0.02 && y >= env.sillTop - 0.02) return "FLOOR_CAVITY";
   if (y < env.sillTop - 0.02 && y >= env.sillTop - 0.4) return "UNDER_FLOOR";
   if (y < env.sillTop - 0.02 && y >= env.grade - 0.05) return "MECHANICAL_SPACE";

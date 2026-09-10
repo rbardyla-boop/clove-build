@@ -3,6 +3,8 @@ import type { BuildingComponent, BuildingGraph } from "@/crates/building-graph/t
 const SOLID = new Set(["common-stud", "king-stud", "jack-stud", "bottom-plate", "top-plate"]);
 const EPS = 1e-4;
 const OVERLAP_M3 = 1e-6;
+/** Declared WET-WALL clearance: 20 mm per cavity face, not 10 mm. */
+const MIN_SIDE_M = 0.02;
 
 type Aabb = { min: [number, number, number]; max: [number, number, number] };
 
@@ -37,7 +39,7 @@ function containedIn(inner: Aabb, outer: Aabb, axis: 0 | 2): { ok: boolean; left
   const leftover = Math.min(lo, hi);
   const along = axis === 0 ? 2 : 0;
   const alongOk = inner.min[along] >= outer.min[along] - EPS && inner.max[along] <= outer.max[along] + EPS;
-  return { ok: leftover >= 0.01 && alongOk, leftover };
+  return { ok: leftover + 1e-9 >= MIN_SIDE_M && alongOk, leftover };
 }
 
 export type WetWallFit = {
@@ -106,7 +108,7 @@ export function evaluateWetWallFit(
       wallDepthMm: Math.round(wallDepth * 1000),
       stackDiaMm: Math.round(stackDia * 1000),
       hostHits,
-      reason: "The soil stack's wall-height portion is not contained in the wet-wall cavity.",
+      reason: "The soil stack's wall-height portion is not contained in the wet-wall cavity with 20 mm clearance per face.",
     };
   }
   if (hostHits.length > 0) {
@@ -125,6 +127,6 @@ export function evaluateWetWallFit(
     wallDepthMm: Math.round(wallDepth * 1000),
     stackDiaMm: Math.round(stackDia * 1000),
     hostHits: [],
-    reason: "Clipped stack sits in the 2×6 cavity and does not occupy studs or unpenetrated plates.",
+    reason: "Clipped stack sits in the 2×6 cavity with ≥20 mm per face and does not occupy studs or unpenetrated plates.",
   };
 }

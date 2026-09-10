@@ -3,6 +3,7 @@ import type { BuildingGraph } from "@/crates/building-graph/types";
 import { findClashes, type ClashFinding, type ClashKind } from "@/crates/clash/engine";
 import { classifyComponent, serviceRunTooLongInOccupied } from "@/crates/space-model/classify";
 import { zoneAllowsExposedService } from "@/crates/space-model/zones";
+import { classifyDwvRun } from "@/crates/geometry/run";
 import { routeSegments } from "./segments";
 
 export type RoutingKind =
@@ -12,7 +13,8 @@ export type RoutingKind =
   | "DISCONNECTED_ROUTE"
   | "FLOATING_COMPONENT"
   | "IMPOSSIBLE_TRANSITION"
-  | "ROUTE_OUTSIDE_ALLOWED_ZONE";
+  | "ROUTE_OUTSIDE_ALLOWED_ZONE"
+  | "REVERSE_GRADE";
 
 export type RoutingFinding = {
   id: string;
@@ -128,6 +130,18 @@ export function findRoutingIssues(graph: BuildingGraph, removedIds: readonly str
           b: "floor-joist",
           reason: `${c.label} crosses multiple joist bays inside the joist depth. Hang the run below the joists or stay in one bay.`,
           zone,
+        });
+      }
+    }
+    if (c.type === "pipe-dwv") {
+      const grade = classifyDwvRun(c);
+      if (grade.kind === "reverse-grade") {
+        findings.push({
+          id: `route.reverse.${c.id}`,
+          kind: "REVERSE_GRADE",
+          a: c.id,
+          b: "flow-direction",
+          reason: `${c.label} rises in its declared flow direction (start ${grade.startElevation?.toFixed(3)} m → end ${grade.endElevation?.toFixed(3)} m). That is reverse grade, not a sloped drain.`,
         });
       }
     }

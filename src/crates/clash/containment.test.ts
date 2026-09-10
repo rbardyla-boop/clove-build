@@ -8,7 +8,7 @@ describe("wet-wall spatial containment", () => {
     const fit = evaluateWetWallFit(buildPeiHouse());
     assert.equal(fit.contained, true, fit.reason);
     assert.equal(fit.hostHits.length, 0);
-    assert.ok(fit.leftoverMm >= 10, `leftover ${fit.leftoverMm}`);
+    assert.ok(fit.leftoverMm >= 20, `leftover ${fit.leftoverMm}`);
     assert.ok(fit.wallDepthMm >= 130);
   });
 

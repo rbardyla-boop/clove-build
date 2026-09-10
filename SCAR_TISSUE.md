@@ -32,4 +32,9 @@ Failures found during construction and the permanent detector for each.
 | JOIST-BORE-001: L-routed cables look installable but bores are not modelled | CONCEPT | `joist-bore-unverified` tag; Check returns MISSING_INFORMATION (location/diameter/remaining wood/protection unknown) |
 | SPACE-002: kitchen sink classified as wall cavity because explodeGroup was occupancy | MECHANISM | Fixtures/cabinet-traps never inherit WALL_CAVITY from explode grouping; untagged traps classify from geometry/host |
 | WET-WALL-001: 90 mm wet wall hosting a 75 mm stack | MECHANISM | Bathroom plumbing wall is 2×6 (140 mm); clipped-stack containment + no stud/plate occupancy except registered penetrations |
-| DWV-SLOPE-001: under-floor waste runs modelled dead-level | CONCEPT | Endpoint `run.from/to` + flow direction; detector classifies level vs sloped from elevations, not box size. Today's level runs → MISSING_INFORMATION |
+| WET-WALL-002: 10 mm per-face clearance vs declared 20 mm | MECHANISM | `MIN_SIDE_M = 0.02`; leftoverMm ≥ 20 |
+| PENETRATION-002: registered hole exempted the whole host/service pair | MECHANISM | Clash leftover = host∩service − service∩penetration |
+| RUN-ENDPOINT-001: routing rebuilt ends from the AABB | MECHANISM | `routeSegments` prefers `run.from`/`run.to` |
+| DWV-GRADE-002: any ΔY counted as sloped | MECHANISM | Negative fall in flow direction → `reverse-grade` FAIL |
+| ROUTE-HOST-001: explodeGroup counted as wall-hosted | MECHANISM | Occupied-space uses `inWallCavity` only |
+| SPACE-WALL-001: 350–380 mm near-wall heuristic | MECHANISM | Wall cavity is extruded bottom-plate XZ ±25 mm |

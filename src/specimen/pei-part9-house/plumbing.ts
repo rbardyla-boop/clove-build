@@ -86,7 +86,7 @@ export function addPlumbing(reg: Registry) {
   // W2 is centred at x=2.75, 1.22 m wide (2.14–3.36). Vent the kitchen in the
   // king-stud bay east of that opening — not through the glass.
   const kitVentX = 3.48;
-  const kitWallZ = halfW - 0.18;
+  const kitWallZ = halfW - (P.sheathing + P.stud.d / 2);
 
   addBox(reg, {
     id: "plumbing.waterheater.001",

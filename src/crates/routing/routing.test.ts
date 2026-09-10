@@ -119,4 +119,22 @@ describe("routing engine", () => {
     assert.ok(hits.some((h) => h.a === FAULT_MIDROOM));
     assert.equal(graph.components[FAULT_MIDROOM], undefined);
   });
+
+  it("uses run.from/to when present instead of the bounding box (RUN-ENDPOINT-001)", () => {
+    const clone = structuredClone(graph);
+    const id = "plumbing.dwv.branch.kitchen.001";
+    const c = clone.components[id]!;
+    c.run = { from: [2.75, 0.22, 3.05], to: [-2.25, 0.12, 3.05], flow: "from-to" };
+    const seg = routeSegments(clone).find((s) => s.id === id)!;
+    assert.deepEqual(seg.from, [2.75, 0.22, 3.05]);
+    assert.deepEqual(seg.to, [-2.25, 0.12, 3.05]);
+  });
+
+  it("fails reverse-grade DWV (DWV-GRADE-002)", () => {
+    const clone = structuredClone(graph);
+    const id = "plumbing.dwv.branch.kitchen.001";
+    clone.components[id]!.run = { from: [2.75, 0.10, 3.05], to: [-2.25, 0.22, 3.05], flow: "from-to" };
+    const hits = findRoutingIssues(clone).filter((h) => h.kind === "REVERSE_GRADE");
+    assert.ok(hits.some((h) => h.a === id), JSON.stringify(hits));
+  });
 });

@@ -726,6 +726,37 @@ export const demoRules: Rule[] = [
     },
   },
   {
+    id: "DWV-GRADE-002",
+    title: "No reverse-grade DWV run in the declared flow direction",
+    packVersion: DEMO_PACK_VERSION,
+    domain: "plumbing",
+    provenance: DEMO,
+    authorityLabel: "Clove educational demonstration rule — endpoint elevations, not NPC minimum fall",
+    evaluate: (ctx) => {
+      const graph = graphFor(ctx);
+      const reverse: string[] = [];
+      for (const c of Object.values(graph.components)) {
+        if (classifyDwvRun(c).kind === "reverse-grade") reverse.push(c.id);
+      }
+      if (reverse.length === 0) {
+        return {
+          verdict: "PASS",
+          componentIds: [],
+          inputs: { reverseRuns: 0 },
+          reason: "No modelled DWV run rises in its declared flow direction.",
+          assumption: "This is a geometric flow-direction check. NPC minimum grade is not evaluated.",
+        };
+      }
+      return {
+        verdict: "FAIL",
+        componentIds: reverse,
+        inputs: { reverseRuns: reverse.length },
+        reason: "A DWV run rises in the declared from→to flow direction. That is reverse grade, not a sloped drain.",
+        assumption: "Any non-zero downhill fall is still not a licensed NPC slope check.",
+      };
+    },
+  },
+  {
     id: "PEI-ENERGY-PATH-001",
     title: "Which energy path applies to this Part 9 house",
     packVersion: DEMO_PACK_VERSION,

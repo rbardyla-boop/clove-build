@@ -1,4 +1,5 @@
 import type { BuildingComponent, BuildingGraph } from "@/crates/building-graph/types";
+import { inWallCavity } from "@/crates/space-model/classify";
 
 export type ClashKind = "GEOMETRIC_CLASH" | "DISCONNECTED_SYSTEM" | "MISSING_PENETRATION" | "OCCUPIED_SPACE";
 
@@ -27,7 +28,6 @@ const SERVICE = new Set(["pipe-supply", "pipe-dwv", "pipe-vent", "cable", "duct"
 const LONG_RUN_M = 1.4;
 const LIVING_ABOVE_FLOOR_M = 0.08;
 const LIVING_BELOW_CEILING_M = 0.1;
-const WALL_CAVITY_M = 0.35;
 
 function aabb(c: BuildingComponent): { min: [number, number, number]; max: [number, number, number] } | null {
   if (c.geometry.kind !== "box") return null;
@@ -58,9 +58,8 @@ function isVerticalRiser(c: BuildingComponent): boolean {
   return sy >= 0.4 && sy >= horiz * 1.5;
 }
 
-function isWallHosted(c: BuildingComponent): boolean {
-  const keys = [c.parentId, c.assembly?.explodeGroup];
-  return keys.some((k) => typeof k === "string" && k.includes("assembly.wall"));
+function isWallHosted(graph: BuildingGraph, c: BuildingComponent): boolean {
+  return inWallCavity(graph, c);
 }
 
 function livingEnvelope(comps: BuildingComponent[]): {
@@ -105,19 +104,6 @@ function livingEnvelope(comps: BuildingComponent[]): {
   };
 }
 
-function nearExteriorWall(
-  c: BuildingComponent,
-  env: NonNullable<ReturnType<typeof livingEnvelope>>,
-): boolean {
-  const [x, , z] = c.geometry.center;
-  const [sx, , sz] = c.geometry.size;
-  const thinX = sx <= 0.2;
-  const thinZ = sz <= 0.2;
-  if (thinX && (x - env.xMin <= WALL_CAVITY_M || env.xMax - x <= WALL_CAVITY_M)) return true;
-  if (thinZ && (z - env.zMin <= WALL_CAVITY_M || env.zMax - z <= WALL_CAVITY_M)) return true;
-  return false;
-}
-
 /**
  * Long distribution runs whose centreline sits in the occupied living volume
  * (above the subfloor, below the ceiling, not in a wall cavity).
@@ -137,13 +123,12 @@ export function findOccupiedSpaceRuns(
   for (const svc of comps) {
     if (!SERVICE.has(svc.type)) continue;
     if (isVerticalRiser(svc)) continue;
-    if (isWallHosted(svc)) continue;
+    if (isWallHosted(graph, svc)) continue;
     const [sx, , sz] = svc.geometry.size;
     if (Math.max(sx, sz) < LONG_RUN_M) continue;
     const [x, y, z] = svc.geometry.center;
     if (y <= env.yMin || y >= env.yMax) continue;
     if (x < env.xMin || x > env.xMax || z < env.zMin || z > env.zMax) continue;
-    if (nearExteriorWall(svc, env)) continue;
     findings.push({
       id: `occupied.${svc.id}`,
       kind: "OCCUPIED_SPACE",
@@ -167,11 +152,15 @@ export function findClashes(graph: BuildingGraph, removedIds: readonly string[] 
     (c) => c.geometry.kind === "box" && !removed.has(c.id) && !c.geometry.rotation,
   );
   const penetrations = comps.filter((c) => c.type === "penetration" && c.penetration);
-  const intended = new Set<string>();
+  const penBoxes = new Map<string, NonNullable<ReturnType<typeof aabb>>[]>();
   for (const p of penetrations) {
     const ref = p.penetration!;
-    intended.add(`${ref.hostId}|${ref.tradeComponentId}`);
-    intended.add(`${ref.tradeComponentId}|${ref.hostId}`);
+    const box = aabb(p);
+    if (!box) continue;
+    const key = `${ref.hostId}|${ref.tradeComponentId}`;
+    const arr = penBoxes.get(key) ?? [];
+    arr.push(box);
+    penBoxes.set(key, arr);
   }
 
   const hosts = comps.filter((c) => SOLID_HOST.has(c.type));
@@ -184,23 +173,30 @@ export function findClashes(graph: BuildingGraph, removedIds: readonly string[] 
     const svcVol = volumeOf(svc);
     if (svcVol < 1e-8) continue;
     for (const host of hosts) {
-      if (intended.has(`${host.id}|${svc.id}`)) continue;
       const ha = aabb(host);
       if (!ha) continue;
       const vol = overlapVolume(sa, ha);
-      if (vol < 0.35 * Math.min(svcVol, volumeOf(host))) continue;
       if (vol < 8e-5) continue;
+      const holes = penBoxes.get(`${host.id}|${svc.id}`) ?? [];
+      let through = 0;
+      for (const hole of holes) through += overlapVolume(sa, hole);
+      const leftover = vol - through;
+      if (leftover < 8e-5) continue;
+      if (leftover < 0.35 * Math.min(svcVol, volumeOf(host)) && holes.length === 0) continue;
+      if (holes.length > 0 && leftover < 0.15 * vol) continue;
       findings.push({
         id: `clash.${svc.id}.${host.id}`,
         kind: "GEOMETRIC_CLASH",
         a: svc.id,
         b: host.id,
-        reason: `${svc.label} occupies volume of ${host.label} without a modelled penetration.`,
+        reason:
+          holes.length > 0
+            ? `${svc.label} occupies ${host.label} outside the modelled penetration volume.`
+            : `${svc.label} occupies volume of ${host.label} without a modelled penetration.`,
       });
     }
     // Window/door units are thin; volume-fraction vs studs would miss a pipe through glass.
     for (const opening of openings) {
-      if (intended.has(`${opening.id}|${svc.id}`)) continue;
       const oa = aabb(opening);
       if (!oa) continue;
       const vol = overlapVolume(sa, oa);

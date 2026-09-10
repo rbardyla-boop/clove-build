@@ -25,6 +25,7 @@ export type RouteSegment = {
 };
 
 function endsOf(c: BuildingComponent): { from: Vec3; to: Vec3 } {
+  if (c.run) return { from: c.run.from, to: c.run.to };
   const [x, y, z] = c.geometry.center;
   const [sx, sy, sz] = c.geometry.size;
   if (sx >= sy && sx >= sz) return { from: [x - sx / 2, y, z], to: [x + sx / 2, y, z] };

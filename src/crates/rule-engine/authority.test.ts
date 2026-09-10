@@ -54,6 +54,7 @@ describe("rule authority gauntlet", () => {
     assert.equal(results.find((r) => r.ruleId === "JOIST-BORE-001")!.verdict, "MISSING_INFORMATION");
     assert.equal(results.find((r) => r.ruleId === "HVAC-HUNG-001")!.verdict, "MISSING_INFORMATION");
     assert.equal(results.find((r) => r.ruleId === "DWV-SLOPE-001")!.verdict, "MISSING_INFORMATION");
+    assert.equal(results.find((r) => r.ruleId === "DWV-GRADE-002")!.verdict, "PASS");
     assert.equal(results.find((r) => r.ruleId === "WET-WALL-001")!.verdict, "PASS");
   });
 

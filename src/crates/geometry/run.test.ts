@@ -34,6 +34,17 @@ describe("DWV endpoint runs", () => {
     assert.ok((ev.horiz ?? 0) > 4);
   });
 
+  it("treats a run that rises in flow direction as reverse-grade, not sloped", () => {
+    const proto = graph.components["plumbing.dwv.branch.kitchen.001"]!;
+    const rising = {
+      ...proto,
+      run: linearRun([2.75, 0.1, 3.05], [-2.25, 0.2, 3.05]),
+    };
+    const ev = classifyDwvRun(rising);
+    assert.equal(ev.kind, "reverse-grade");
+    assert.ok((ev.fall ?? 0) < 0);
+  });
+
   it("does not treat vertical drops as level drains", () => {
     const ev = classifyDwvRun(graph.components["plumbing.dwv.branch.kitchen.drop"]!);
     assert.equal(ev.kind, "short-or-vertical");

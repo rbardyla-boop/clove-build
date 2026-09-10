@@ -106,31 +106,45 @@ export function addHvac(reg: Registry) {
     dependencies: ["slab.basement"],
   });
 
-  const { center: refC, size: refS } = segmentBox(
-    [indoor[0] + 0.2, indoor[1] + 0.2, indoor[2] - 0.3],
-    [outdoor[0], outdoor[1] + 0.2, -halfW + 0.05],
-    0.03,
-  );
-  addBox(reg, {
-    id: "hvac.refrigerant.001",
-    type: "refrigerant-line",
-    label: "Refrigerant line set (concept)",
-    parentId: "assembly.hvac",
-    trade: "hvac",
-    center: refC,
-    size: refS,
-    material: MAT.copper,
-    stage: 16,
-    explodeGroup: "assembly.hvac",
-    explodeVector: [0, 0.5, -0.6],
-    tags: ["hvac"],
-    short: "A simplified refrigerant-line concept between indoor and outdoor units.",
-    purpose: "Show that the two units are one machine. Charge, diameter and brazing are not taught as engineering.",
-    visualization: "SCHEMATIC AIRFLOW",
-    provenance: PROV_EDU,
-    system: { systemId: "system.hvac", nodeId: "hvac.refrigerant.001", role: "refrigerant" },
-    dependencies: ["hvac.heatpump.indoor.001"],
-  });
+  const yRef = indoor[1] + 0.2;
+  const xRef = outdoor[0];
+  const zInside = -halfW + P.fdnT + 0.04;
+  const zThrough = -halfW + P.fdnT / 2;
+  const zOutside = outdoor[2];
+  const refDia = 0.03;
+  const refA: Vec3 = [indoor[0] + 0.2, yRef, indoor[2] - 0.3];
+  const refB: Vec3 = [xRef, yRef, indoor[2] - 0.3];
+  const refC: Vec3 = [xRef, yRef, zInside];
+  const refD: Vec3 = [xRef, yRef, zOutside];
+  function refLine(id: string, label: string, a: Vec3, b: Vec3, extra?: { penetrationHost?: string }) {
+    const { center, size } = segmentBox(a, b, refDia);
+    addBox(reg, {
+      id,
+      type: "refrigerant-line",
+      label,
+      parentId: "assembly.hvac",
+      trade: "hvac",
+      center,
+      size,
+      material: MAT.copper,
+      stage: 16,
+      explodeGroup: "assembly.hvac",
+      explodeVector: [0, 0.5, -0.6],
+      tags: ["hvac"],
+      short: "A simplified refrigerant-line concept between indoor and outdoor units.",
+      purpose: "Show that the two units are one machine. Charge, diameter and brazing are not taught as engineering.",
+      visualization: "SCHEMATIC AIRFLOW",
+      provenance: PROV_EDU,
+      system: { systemId: "system.hvac", nodeId: id, role: "refrigerant" },
+      run: { from: a, to: b, flow: "from-to" },
+      dependencies: ["hvac.heatpump.indoor.001"],
+    });
+    void extra;
+  }
+  refLine("hvac.refrigerant.001", "Refrigerant line (indoor run)", refA, refB);
+  refLine("hvac.refrigerant.002", "Refrigerant line (to wall)", refB, refC);
+  refLine("hvac.refrigerant.003", "Refrigerant line (through wall)", [xRef, yRef, zInside], [xRef, yRef, -halfW - 0.05]);
+  refLine("hvac.refrigerant.004", "Refrigerant line (outdoor)", [xRef, yRef, -halfW - 0.05], refD);
 
   addBox(reg, {
     id: "penetration.wall.back.hvac.001",
@@ -138,7 +152,7 @@ export function addHvac(reg: Registry) {
     label: "Refrigerant line penetration",
     parentId: "assembly.wall.back",
     trade: "hvac",
-    center: [1.35, Y.footingTop + 0.85, -halfW + P.fdnT / 2],
+    center: [xRef, yRef, zThrough],
     size: [0.12, 0.12, P.fdnT + 0.04],
     material: MAT.concrete,
     stage: 16,
@@ -149,7 +163,7 @@ export function addHvac(reg: Registry) {
     purpose: "Host/trade penetration for later sealing.",
     penetration: {
       hostId: "fdn.back",
-      tradeComponentId: "hvac.refrigerant.001",
+      tradeComponentId: "hvac.refrigerant.003",
       purpose: "refrigerant-line",
     },
   });
@@ -588,7 +602,10 @@ export function addHvac(reg: Registry) {
 
 export const HVAC_CONNECTIONS: SystemConnection[] = [
   { id: "hv.ref", from: "hvac.heatpump.indoor.001", to: "hvac.refrigerant.001", kind: "refrigerant" },
-  { id: "hv.ref2", from: "hvac.refrigerant.001", to: "hvac.heatpump.outdoor.001", kind: "refrigerant" },
+  { id: "hv.ref1b", from: "hvac.refrigerant.001", to: "hvac.refrigerant.002", kind: "refrigerant" },
+  { id: "hv.ref2", from: "hvac.refrigerant.002", to: "hvac.refrigerant.003", kind: "refrigerant" },
+  { id: "hv.ref3", from: "hvac.refrigerant.003", to: "hvac.refrigerant.004", kind: "refrigerant" },
+  { id: "hv.ref4", from: "hvac.refrigerant.004", to: "hvac.heatpump.outdoor.001", kind: "refrigerant" },
   { id: "hv.cond", from: "hvac.heatpump.indoor.001", to: "hvac.condensate.001", kind: "condensate" },
   { id: "hv.sup0", from: "hvac.heatpump.indoor.001", to: "hvac.duct.supply.riser", kind: "air-supply" },
   { id: "hv.sup1", from: "hvac.duct.supply.riser", to: "hvac.duct.supply.main", kind: "air-supply" },
