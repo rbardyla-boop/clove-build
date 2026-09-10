@@ -75,6 +75,13 @@ export function siteFacts(graph: BuildingGraph): SiteFacts {
   };
 }
 
-export function deriveSite(graph: BuildingGraph): BuildingGraph {
-  return { ...graph, site: siteFacts(graph) };
+/**
+ * Height of the gable roof deck at a given z, from site facts (ridge, wall, footprint).
+ * Not a structural rafter schedule.
+ */
+export function roofDeckY(graph: BuildingGraph, z: number): number {
+  const s = siteFacts(graph);
+  const half = Math.max(Math.abs(s.zMin), Math.abs(s.zMax), 0.01);
+  const rise = Math.max(s.ridgeY - s.wallTop, 0);
+  return s.ridgeY - Math.abs(z) * (rise / half);
 }

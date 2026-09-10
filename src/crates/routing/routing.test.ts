@@ -5,6 +5,7 @@ import { buildPeiHouse } from "../../specimen/pei-part9-house/index.ts";
 import { Y } from "../../specimen/pei-part9-house/params.ts";
 import { findRoutingIssues } from "./engine.ts";
 import { routeSegments } from "./segments.ts";
+import { roofDeckY } from "../site/facts.ts";
 
 describe("routing engine", () => {
   const graph = buildPeiHouse();
@@ -12,7 +13,7 @@ describe("routing engine", () => {
   it("intact house has no occupied, floating, or missing-penetration routing issues", () => {
     const hits = findRoutingIssues(graph);
     const bad = hits.filter((h) =>
-      ["OCCUPIED_SPACE", "FLOATING_COMPONENT", "MISSING_PENETRATION", "SOLID_HOST_COLLISION", "DISCONNECTED_ROUTE"].includes(h.kind),
+      ["OCCUPIED_SPACE", "FLOATING_COMPONENT", "MISSING_PENETRATION", "SOLID_HOST_COLLISION", "DISCONNECTED_ROUTE", "THROUGH_ROOF"].includes(h.kind),
     );
     assert.deepEqual(bad, [], JSON.stringify(bad));
   });
@@ -71,9 +72,33 @@ describe("routing engine", () => {
 
   it("correct under-floor pipe and attic vent pass", () => {
     const hits = findRoutingIssues(graph).filter((h) =>
-      ["plumbing.supply.cold.kitchen.001", "plumbing.vent.kitchen.001"].includes(h.a),
+      ["plumbing.supply.cold.kitchen.001", "plumbing.vent.kitchen.001", "plumbing.vent.kitchen.into-attic"].includes(h.a),
     );
     assert.deepEqual(hits, []);
+  });
+
+  it("kitchen attic vent stays below the roof deck", () => {
+    const c = graph.components["plumbing.vent.kitchen.001"]!;
+    assert.ok(c.run);
+    for (const p of [c.run!.from, c.run!.to, c.geometry.center]) {
+      assert.ok(p[1] < roofDeckY(graph, p[2]) - 0.05, `point ${p} vs deck ${roofDeckY(graph, p[2])}`);
+    }
+  });
+
+  it("stack vent through the roof is allowed because a roof penetration exists", () => {
+    const hits = findRoutingIssues(graph).filter((h) => h.a === "plumbing.vent.stack.001" && h.kind === "THROUGH_ROOF");
+    assert.deepEqual(hits, []);
+  });
+
+  it("flags a kitchen attic vent that runs through the roof covering", () => {
+    const clone = structuredClone(graph);
+    const v = clone.components["plumbing.vent.kitchen.001"]!;
+    const z = 3.5;
+    const y = roofDeckY(clone, z) + 0.2;
+    v.run = { from: [3.4, y, z], to: [-2.2, y, z], flow: "from-to" };
+    v.geometry = { kind: "box", center: [0.6, y, z], size: [5.6, 0.04, 0.04] };
+    const hits = findRoutingIssues(clone).filter((h) => h.kind === "THROUGH_ROOF" && h.a === "plumbing.vent.kitchen.001");
+    assert.ok(hits.length >= 1, JSON.stringify(findRoutingIssues(clone).filter((h) => h.kind === "THROUGH_ROOF")));
   });
 
   it("flags a duct filling the joist cavity", () => {

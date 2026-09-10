@@ -1,4 +1,4 @@
-import { siteFacts } from "@/crates/site/facts";
+import { siteFacts, roofDeckY } from "@/crates/site/facts";
 import type { BuildingGraph } from "@/crates/building-graph/types";
 import { findClashes, type ClashFinding, type ClashKind } from "@/crates/clash/engine";
 import { classifyComponent, serviceRunTooLongInOccupied } from "@/crates/space-model/classify";
@@ -14,7 +14,8 @@ export type RoutingKind =
   | "FLOATING_COMPONENT"
   | "IMPOSSIBLE_TRANSITION"
   | "ROUTE_OUTSIDE_ALLOWED_ZONE"
-  | "REVERSE_GRADE";
+  | "REVERSE_GRADE"
+  | "THROUGH_ROOF";
 
 export type RoutingFinding = {
   id: string;
@@ -34,6 +35,38 @@ const SERVICE_TYPES = new Set([
   "refrigerant-line",
   "condensate",
 ]);
+
+function hasRoofPenetration(graph: BuildingGraph, tradeId: string): boolean {
+  return Object.values(graph.components).some((p) => {
+    if (p.type !== "penetration" || p.penetration?.tradeComponentId !== tradeId) return false;
+    if ((p.tags ?? []).includes("roof")) return true;
+    const host = graph.components[p.penetration.hostId];
+    return host?.type === "roof-sheathing" || host?.type === "roof-covering" || host?.type === "underlayment";
+  });
+}
+
+function runSamples(c: { run?: { from: [number, number, number]; to: [number, number, number] }; geometry: { center: [number, number, number] } }): [number, number, number][] {
+  if (c.run) {
+    const [ax, ay, az] = c.run.from;
+    const [bx, by, bz] = c.run.to;
+    return [
+      [ax, ay, az],
+      [(ax + bx) / 2, (ay + by) / 2, (az + bz) / 2],
+      [bx, by, bz],
+    ];
+  }
+  return [c.geometry.center];
+}
+
+/** True when a service sits on or above the roof deck. Rotated roof meshes have no AABB. */
+function piercesRoofDeck(graph: BuildingGraph, c: { id: string; run?: { from: [number, number, number]; to: [number, number, number] }; geometry: { center: [number, number, number] } }): boolean {
+  void siteFacts;
+  for (const [x, y, z] of runSamples(c)) {
+    void x;
+    if (y > roofDeckY(graph, z) + 0.01) return true;
+  }
+  return false;
+}
 
 function mapClash(c: ClashFinding): RoutingFinding {
   const kind: RoutingKind =
@@ -144,6 +177,15 @@ export function findRoutingIssues(graph: BuildingGraph, removedIds: readonly str
           reason: `${c.label} rises in its declared flow direction (start ${grade.startElevation?.toFixed(3)} m → end ${grade.endElevation?.toFixed(3)} m). That is reverse grade, not a sloped drain.`,
         });
       }
+    }
+    if (piercesRoofDeck(graph, c) && !hasRoofPenetration(graph, c.id)) {
+      findings.push({
+        id: `route.roof.${c.id}`,
+        kind: "THROUGH_ROOF",
+        a: c.id,
+        b: "roof-covering",
+        reason: `${c.label} crosses the roof deck without a modelled roof penetration. An attic run stays below the rafters; only a stack vent (with a hole and flashing) goes through the roof.`,
+      });
     }
   }
 

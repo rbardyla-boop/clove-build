@@ -571,7 +571,7 @@ export const demoRules: Rule[] = [
     evaluate: (ctx) => {
       const graph = graphFor(ctx);
       const hits = findRoutingIssues(graph, ctx.removedIds).filter((c) =>
-        ["SOLID_HOST_COLLISION", "MISSING_PENETRATION", "DISCONNECTED_ROUTE", "FLOATING_COMPONENT", "IMPOSSIBLE_TRANSITION", "ROUTE_OUTSIDE_ALLOWED_ZONE"].includes(c.kind),
+        ["SOLID_HOST_COLLISION", "MISSING_PENETRATION", "DISCONNECTED_ROUTE", "FLOATING_COMPONENT", "IMPOSSIBLE_TRANSITION", "ROUTE_OUTSIDE_ALLOWED_ZONE", "THROUGH_ROOF"].includes(c.kind),
       );
       if (hits.length === 0) {
         return {

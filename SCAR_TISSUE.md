@@ -41,3 +41,4 @@ Failures found during construction and the permanent detector for each.
 | DEPTH-001: sloped DWV used AABB as rendered truth | MECHANISM | Renderer orients the stick along `run.from`→`run.to` |
 | DEPTH-002: engines imported PEI P/Y | MECHANISM | `siteFacts(graph)` |
 | DEPTH-003: sequence treated assembly groups as unbuilt | MECHANISM | Group prerequisites count as placed if present |
+| ROOF-VENT-001: kitchen attic vent ran along the eave, through the roof covering; Check missed it because rotated roof meshes have no AABB | MECHANISM | `THROUGH_ROOF` samples `run` vs `roofDeckY`; kitchen vent turns inboard below the rafters; stack vent still needs a modelled roof hole |

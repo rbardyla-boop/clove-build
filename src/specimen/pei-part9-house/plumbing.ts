@@ -93,6 +93,10 @@ export function addPlumbing(reg: Registry) {
   // king-stud bay east of that opening — not through the glass.
   const kitVentX = 3.48;
   const kitWallZ = halfW - (P.sheathing + P.stud.d / 2);
+  // Through the top plate just below the eave, then inboard before rising into the attic.
+  const plateY = Y.wallTop + 0.02;
+  const atticY = Y.wallTop + 0.1;
+  const atticZ = 2.45;
 
   addBox(reg, {
     id: "plumbing.waterheater.001",
@@ -451,18 +455,40 @@ export function addPlumbing(reg: Registry) {
     "Enter the framed wall in a stud bay, not the window unit.",
     { explodeGroup: "assembly.wall.front", explodeVector: [0, 0.45, 1.6], local: [0, 0.15, 0.42], parentId: "assembly.wall.front" });
   pipe(reg, "plumbing.vent.kitchen.rise", "Kitchen vent riser", "pipe-vent",
-    [kitVentX, Y.floorTop + 0.62, kitWallZ], [kitVentX, ventY, kitWallZ], VENT, MAT.pvc, 15,
+    [kitVentX, Y.floorTop + 0.62, kitWallZ], [kitVentX, plateY, kitWallZ], VENT, MAT.pvc, 15,
     ["plumbing", "vent", "kitchen"], "Kitchen vent rising in the service wall beside the window.",
-    "Take the kitchen trap to the attic/ceiling plane inside the wall cavity.",
+    "Take the kitchen trap through the top plate into the attic, inside the wall cavity.",
     { explodeGroup: "assembly.wall.front", explodeVector: [0, 0.5, 1.7], local: [0, 0.2, 0.45], parentId: "assembly.wall.front" });
+  addBox(reg, {
+    id: "penetration.wall.front.plumbing.kitchen-vent",
+    type: "penetration",
+    label: "Kitchen vent top-plate penetration",
+    parentId: "assembly.wall.front",
+    trade: "plumbing",
+    center: [kitVentX, Y.wallTop, kitWallZ],
+    size: [0.08, 0.1, 0.08],
+    material: MAT.wood,
+    stage: 15,
+    explodeGroup: "assembly.wall.front",
+    explodeVector: [0, 0.5, 1.5],
+    tags: ["plumbing", "penetration", "kitchen"],
+    short: "Opening where the kitchen vent passes the front-wall top plate.",
+    purpose: "Host/trade pair for the kitchen vent entering the attic. Not a roof penetration.",
+    penetration: { hostId: "assembly.wall.front.plate.top.outer", tradeComponentId: "plumbing.vent.kitchen.rise", purpose: "kitchen-vent-plate" },
+    dependencies: ["plumbing.vent.kitchen.rise"],
+  });
+  pipe(reg, "plumbing.vent.kitchen.into-attic", "Kitchen vent into attic", "pipe-vent",
+    [kitVentX, plateY, kitWallZ], [kitVentX, atticY, atticZ], VENT, MAT.pvc, 15,
+    ["plumbing", "vent", "kitchen"], "Kitchen vent turning inboard off the eave into the attic.",
+    "Leave the exterior wall line. An attic run does not travel through the roof covering.");
   pipe(reg, "plumbing.vent.kitchen.001", "Kitchen vent through attic", "pipe-vent",
-    [kitVentX, ventY, kitWallZ], [stackX, ventY, kitWallZ], VENT, MAT.pvc, 15,
-    ["plumbing", "vent", "kitchen"], "Kitchen vent crossing above the ceiling to the stack.",
-    "Keep the kitchen trap from siphoning — educational topology in the attic, not occupied space.");
+    [kitVentX, atticY, atticZ], [stackX, atticY, atticZ], VENT, MAT.pvc, 15,
+    ["plumbing", "vent", "kitchen"], "Kitchen vent crossing the attic, below the rafters, to the stack.",
+    "Keep the kitchen trap from siphoning — educational topology in the attic, not through the roof.");
   pipe(reg, "plumbing.vent.kitchen.002", "Kitchen vent to stack", "pipe-vent",
-    [stackX, ventY, kitWallZ], [stackX, ventY, stackZ], VENT, MAT.pvc, 15,
-    ["plumbing", "vent", "kitchen"], "Kitchen vent joining the stack vent above the ceiling.",
-    "Tie kitchen venting into the main stack in the attic plane.");
+    [stackX, atticY, atticZ], [stackX, atticY, stackZ], VENT, MAT.pvc, 15,
+    ["plumbing", "vent", "kitchen"], "Kitchen vent joining the stack vent in the attic.",
+    "Tie kitchen venting into the main stack below the roof deck.");
 
   // Kitchen supply hung below the joists, then rising through the floor at the fixture.
   pipe(reg, "plumbing.supply.cold.kitchen.001", "Cold to kitchen under floor", "pipe-supply",
@@ -592,7 +618,8 @@ export const PLUMBING_CONNECTIONS: SystemConnection[] = [
   { id: "pl.vent.kit", from: "plumbing.dwv.trap.kitchen.001", to: "plumbing.vent.kitchen.arm", kind: "vent" },
   { id: "pl.vent.kit1b", from: "plumbing.vent.kitchen.arm", to: "plumbing.vent.kitchen.into-wall", kind: "vent" },
   { id: "pl.vent.kit1c", from: "plumbing.vent.kitchen.into-wall", to: "plumbing.vent.kitchen.rise", kind: "vent" },
-  { id: "pl.vent.kit2", from: "plumbing.vent.kitchen.rise", to: "plumbing.vent.kitchen.001", kind: "vent" },
+  { id: "pl.vent.kit1d", from: "plumbing.vent.kitchen.rise", to: "plumbing.vent.kitchen.into-attic", kind: "vent" },
+  { id: "pl.vent.kit2", from: "plumbing.vent.kitchen.into-attic", to: "plumbing.vent.kitchen.001", kind: "vent" },
   { id: "pl.vent.kit3", from: "plumbing.vent.kitchen.001", to: "plumbing.vent.kitchen.002", kind: "vent" },
   { id: "pl.vent.kit4", from: "plumbing.vent.kitchen.002", to: "plumbing.vent.stack.001", kind: "vent" },
 ];
