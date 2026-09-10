@@ -1,4 +1,6 @@
 import { register } from "node:module";
-import { pathToFileURL } from "node:url";
+import { dirname, join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-register("./ts-alias-loader.mjs", pathToFileURL("./scripts/"));
+const here = dirname(fileURLToPath(import.meta.url));
+register(pathToFileURL(join(here, "ts-alias-loader.mjs")).href, import.meta.url);

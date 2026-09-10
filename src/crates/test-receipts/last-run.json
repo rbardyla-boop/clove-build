@@ -1,7 +1,19 @@
 {
   "passed": 31,
   "failed": 0,
-  "ranAt": "2026-09-10T09:38:14.550Z",
+  "ranAt": "2026-09-10T10:22:27.544Z",
   "browserVerification": "VERIFIED",
-  "ruleDeterminism": "PASS"
+  "ruleDeterminism": "PASS",
+  "cloveCore": {
+    "passed": 31,
+    "failed": 0
+  },
+  "fullRepository": {
+    "passed": 286,
+    "failed": 0
+  },
+  "typecheck": "PASS",
+  "productionBuild": "PASS",
+  "githubCi": "NOT YET RUN",
+  "ryanHumanTest": "NOT YET RUN"
 }

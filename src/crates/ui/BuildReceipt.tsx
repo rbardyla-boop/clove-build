@@ -1,6 +1,10 @@
 import { liveReceipt } from "@/crates/test-receipts/receipt";
 import { useLab } from "@/crates/session/store";
 
+function fmtCounts(c: { passed: number; failed: number }) {
+  return `${c.passed} passed / ${c.failed} failed`;
+}
+
 export function BuildReceipt() {
   const open = useLab((s) => s.showReceipt);
   const snapshot = useLab((s) => s);
@@ -17,8 +21,14 @@ export function BuildReceipt() {
     ["Sequence invariant", r.sequenceInvariant],
     ["Reset invariant", r.resetInvariant],
     ["Rule determinism", r.ruleDeterminism],
-    ["Automated tests", `${r.automated.passed} passed / ${r.automated.failed} failed (${r.automated.ranAt})`],
+    ["Clove core tests", fmtCounts(r.cloveCore)],
+    ["Full repository tests", fmtCounts(r.fullRepository)],
+    ["Typecheck", r.typecheck],
+    ["Production build", r.productionBuild],
+    ["GitHub CI", r.githubCi],
     ["Browser verification", r.browserVerification],
+    ["Ryan human test", r.ryanHumanTest],
+    ["Last run", r.automated.ranAt],
     ["Regulatory pack", r.regulatoryPack],
   ];
   return (
@@ -47,7 +57,8 @@ export function BuildReceipt() {
         ))}
       </ul>
       <p className="lab-disclaimer">
-        This drawer does not certify itself. Automated counts come from the last executed test run written to last-run.json.
+        This drawer does not certify itself. A green Clove subset does not mean the repository is green. A green
+        repository does not mean the Ryan human test passed.
       </p>
     </aside>
   );

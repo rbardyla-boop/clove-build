@@ -2,7 +2,8 @@ import { existsSync, statSync } from "node:fs";
 import { dirname, resolve as pathResolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-const SRC = pathResolve("/workspace/src");
+const ROOT = pathResolve(dirname(fileURLToPath(import.meta.url)), "..");
+const SRC = pathResolve(ROOT, "src");
 
 function asFile(file) {
   try {

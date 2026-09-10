@@ -8,25 +8,40 @@ v0.1 is deliberately narrow: one PEI-oriented Part 9 demonstration house, founda
 
 It is an educational prototype, not a permit approval service or substitute for a qualified professional or authority having jurisdiction.
 
+## Runtime
+
+Verified on **Node 22.x** (see `.nvmrc` and `package.json` `engines`). Multi-version support is not claimed.
+
 ## What v0.1 proves
 
 A first-time user can orbit a recognisable house, explode it globally or by assembly, scrub construction stages, inspect members, remove parts in Break It, run deterministic checks (PASS / FAIL / MISSING INFORMATION / UNCERTAIN), and reset.
 
 ## Run
 
-This repository is set up for the hosted preview. Locally, after `npm install`:
-
 ```
+npm ci
 npm run dev
 ```
 
-## Test
+## Verify
+
+The complete repository gate:
 
 ```
-npm run test:clove
+npm run verify
 ```
 
-Open **Ryan Test** in the app and walk A–J. **Copy test results** into the next development conversation.
+That is:
+
+1. `npm test` — full test suite (platform/PWA tests + lib tests + Clove core)
+2. `npm run typecheck`
+3. `npm run build`
+
+`npm test` is the canonical complete test suite.
+
+`npm run test:clove` is the Clove subset only. Do not report its count as the full repository result.
+
+Open **Ryan Test** in the app and walk A–J. **Copy test results** into the next development conversation. A green automated gate is not a passed Ryan Test.
 
 ## Architecture
 
